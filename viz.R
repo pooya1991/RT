@@ -1,5 +1,5 @@
 graphs_clusters <- vector("list", 10)  
-for (i in 1:10) {
+for (i in 1:n_clusts) {
     graphs_clusters[[i]] <- valid_centered_long %>%
         filter(!is.na(time_centered)) %>% 
         left_join(ids_clusts1, by = "id") %>% 
