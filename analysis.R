@@ -7,6 +7,7 @@ source("utils.R")
 pth_raw_data <- "data/for_Pooya_15.csv"
 thresh_outlier <- 120
 thresh_crop <- 60
+n_clusts <- 10
 
 # import data -----------------------------------------------------------------------
 
@@ -119,7 +120,7 @@ simil_mat[is.na(simil_mat)] <- 0
 eigen_vecs <- simil_to_eigen(simil_mat, n = 10, sigma = 1.5)
 set.seed(1215)
 # the parameter centers defines the number of clusters and m defines the degree of fuzziness
-res_clust <- e1071::cmeans(eigen_vecs, centers = 10, m = 1.3)
+res_clust <- e1071::cmeans(eigen_vecs, centers = n_clusts, m = 1.3)
 
 # for each clustering we perform, we build a ids_clust data-frame. These data-frames consists
 # of two variables. One is IDs and the other is the cluster to which each ID is assigned
