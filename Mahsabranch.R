@@ -5,74 +5,68 @@
 
 install.packages("BiocManager")
 BiocManager::install("WGCNA")
+library(tidyverse)
 
 ### the valid_centered_wide data has 3631 sample(IDs) and 99 featurs(occr)
 
-data =  valid_centered_wide
-mat_data <- valid_centered_wide %>% 
+simil_mat <- valid_centered_wide %>% 
     select(-id) %>%
     data.matrix %>%
     # transposing the matrix is needed because we want to compute cosine similarity between IDs
     # so we need IDs to be the columns of the matrix
     t() %>%
-    `colnames<-`(valid_centered_wide$id) %>% as.matrix()
+    `colnames<-`(valid_centered_wide$id) %>%
+    proxy::simil(method = "cosine", by_rows = FALSE) %>% 
+    # the output of simil() is not a matrix. But turning it into a matrix is simple
+    as.matrix()
 
-correlation <- cor(mat_data , use = "pairwise.complete.obs")
-# this correlation still has NA it stems from some variables which has zero variance, for example if 
-# get correlation cbind(a=runif(10),b=rep(1,10)) i will face the error" the standard deviation is zero"
-# i want to remove zero variance predictor in df.
+# it's very unlikely that two ids have cosine similarity equal to 1 (or -1). But there are 
+# many data points in the constructed similarity matrix which are equal to 1. This happens
+# when two IDs have only two overlapping measurements. In this case we can't claim that these
+# IDs are similar to each other. So whenever we see a perfect similarity, we substitute it
+# with 0.
+simil_mat[near(abs(simil_mat), 1)] <- 0
+diag(simil_mat) <- 1
+# the missing entries of the similarity matrix are due to IDs that have less than 2
+# overlapping measurements. We assign 0 to these entries.
+simil_mat[is.na(simil_mat)] <- 0
 
-dfr <- mat_data[, ! apply(mat_data , 2 , function(x) sd(x, na.rm = TRUE)==0 ) ]
 
-all.equal(dfr , mat_data)
+# calculating adjacency matric for hard threshold (t0 = 0.7) by the choice of parameters
 
+adj_mat1 <- simil_mat
+size <- 3631
+t0 <- 0.7
 
-simil_mat <- (1+ correlation)/2 # still NA !!!!!!!!!!!
-diag(simil_mat) <- 0
+for (i in 1:size ){
+    for (j in 1:size){
+        if (adj_mat1[i,j] > t0 ) {
+            adj_mat1[i,j] <- 1
+        } else {
+            adj_mat1[i,j] <- 0
+        }
+    }
+}
+diag(adj_mat1) <- 0
 
-any(is.na(simil_mat))
-sum(is.na(simil_mat))
-max(simil_mat , na.rm = T) 
-min(simil_mat , na.rm = T)
-
-# calculating adjacency matric for hard threshold by the choice of parameters
-
-adj_mat1 <- si
-
-# calculating adjacency matrix with sigmoid function 
+# calculating adjacency matrix with sigmoid function
 alpha <- 10 
 t0 <- 0.5
-adj_mat <- 1/(1 + exp())
+adj_mat2 <- 1/(1 + exp(-alpha*(simil_mat-t0)))
+diag(adj_mat2) <- 0
 
-# DBSCAN
-library(fpc)
-library(ggplot2)
-library(factoextra)
-set.seed(123)
-db <- fpc::dbscan(mat_data, eps = 0.15, MinPts = 5 )
+# calculating adjacency matrix with power function(soft threshold), i checked for positive and symmetricity of
+# similarity matrix and adjacency matix
+# adjacency = power(similarity , \beta) ,\beta is the parameter should be chosen. 
 
-fviz_cluster(db, data = df, stand = FALSE,
-             ellipse = FALSE, show.clust.cent = FALSE,
-             geom = "point",palette = "jco", ggtheme = theme_classic())
+adjacency.fromSimilarity(simil_mat,
+                         type = "unsigned",
+                         power = if (type=="distance") 1 else 6)
 
-print(db)
-print.dbscan()
-
-# Determining the optimal eps value
-par(mfrow = c(1,3))
-dbscan::kNNdistplot(mat_data, k =  5)
-
-# Clustering silhouette method
-library(cluster)
-pam_k15 <- pam(data , k=15)
-pam_k10$silinfo$widths
-
-sil_plot <- silhouette(pam_k15)
-
-pdf("silhouette15.pdf")
-plot(sil_plot)
-dev.off()
-
-
-pam_k10$silinfo$avg.width
-
+#Analysis of scale free topology for multiple soft thresholding powers
+sft <- pickSoftThreshold.fromSimilarity(
+    simil_mat,
+    powerVector = c(seq(1, 10, by = 1), seq(12, 20, by = 2)),
+    removeFirst = FALSE, nBreaks = 10, blockSize = 1000,
+    moreNetworkConcepts=FALSE,
+    verbose = 2, indent = 0)
