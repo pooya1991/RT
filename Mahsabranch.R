@@ -18,8 +18,18 @@ mat_data <- valid_centered_wide %>%
     `colnames<-`(valid_centered_wide$id) %>% as.matrix()
 
 correlation <- cor(mat_data , use = "pairwise.complete.obs")
-simil_mat <- (1+ correlation)/2 
+# this correlation still has NA it stems from some variables which has zero variance, for example if 
+# get correlation cbind(a=runif(10),b=rep(1,10)) i will face the error" the standard deviation is zero"
+# i want to remove zero variance predictor in df.
+
+dfr <- mat_data[, ! apply(mat_data , 2 , function(x) sd(x, na.rm = TRUE)==0 ) ]
+
+all.equal(dfr , mat_data)
+
+
+simil_mat <- (1+ correlation)/2 # still NA !!!!!!!!!!!
 diag(simil_mat) <- 0
+
 any(is.na(simil_mat))
 sum(is.na(simil_mat))
 max(simil_mat , na.rm = T) 
@@ -34,8 +44,23 @@ alpha <- 10
 t0 <- 0.5
 adj_mat <- 1/(1 + exp())
 
+# DBSCAN
+library(fpc)
+library(ggplot2)
+library(factoextra)
+set.seed(123)
+db <- fpc::dbscan(mat_data, eps = 0.15, MinPts = 5 )
 
-# all the elements are NA
+fviz_cluster(db, data = df, stand = FALSE,
+             ellipse = FALSE, show.clust.cent = FALSE,
+             geom = "point",palette = "jco", ggtheme = theme_classic())
+
+print(db)
+print.dbscan()
+
+# Determining the optimal eps value
+par(mfrow = c(1,3))
+dbscan::kNNdistplot(mat_data, k =  5)
 
 # Clustering silhouette method
 library(cluster)
