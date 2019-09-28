@@ -6,6 +6,7 @@
 install.packages("BiocManager")
 BiocManager::install("WGCNA")
 library(tidyverse)
+library(viridis)
 
 ### the valid_centered_wide data has 3631 sample(IDs) and 99 featurs(occr)
 
@@ -59,10 +60,27 @@ diag(adj_mat2) <- 0
 # similarity matrix and adjacency matix
 # adjacency = power(similarity , \beta) ,\beta is the parameter should be chosen. 
 
-adjacency.fromSimilarity(simil_mat,
+A <- adjacency.fromSimilarity(simil_mat,
                          type = "unsigned",
-                         power = if (type=="distance") 1 else 6)
+                         power = 6)
 
+k <- as.numeric(apply(A,2, sum))-1 
+# standardize the connectivity 
+Z.k <- scale (k)
+max(Z.k)
+min(Z.k)
+thresholdZ.k <- -2.5
+outliercolor <- ifelse(Z.k < thresholdZ.k, "black" , "red")
+connectivity_color <- data.frame(numbers2colors(Z.k,signed = TRUE))
+datcolor <- data.frame(outlier=outliercolor, connectivity_color)
+IDsTree <- hclust(as.dist(1-A) , method = "average")
+pdf("dendogram IDs.pdf")
+plotDendroAndColors(IDsTree,colors = datcolor, groupLabels = names(datcolor), main ="Dendogram of IDs")
+dev.off()
+
+
+
+    
 #Analysis of scale free topology for multiple soft thresholding powers
 sft <- pickSoftThreshold.fromSimilarity(
     simil_mat,
@@ -70,3 +88,15 @@ sft <- pickSoftThreshold.fromSimilarity(
     removeFirst = FALSE, nBreaks = 10, blockSize = 1000,
     moreNetworkConcepts=FALSE,
     verbose = 2, indent = 0)
+
+
+newdata <- valid_centered_wide %>% 
+    select(-id) %>%
+    data.matrix %>%
+    # transposing the matrix is needed because we want to compute cosine similarity between IDs
+    # so we need IDs to be the columns of the matrix
+    t() %>%
+    `colnames<-`(valid_centered_wide$id)
+pdf("boxplot of IDs.pdf")
+boxplot(newdata , show.names=T , las= 2 ,  cex.axis = 0.5 , col=rainbow(10, alpha=0.5))
+dev.off()
