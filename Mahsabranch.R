@@ -75,16 +75,21 @@ connectivity_color <- data.frame(numbers2colors(Z.k,signed = TRUE))
 datcolor <- data.frame(outlier=outliercolor, connectivity_color)
 IDsTree <- hclust(as.dist(1-A) , method = "average")
 pdf("dendogram IDs.pdf")
-plotDendroAndColors(IDsTree,colors = datcolor, groupLabels = names(datcolor), main ="Dendogram of IDs")
+plotDendroAndColors(IDsTree,colors = datcolor, groupLabels = c("outlier","connectivitycolor"),
+                    main ="Dendogram of IDs" , cex.dendroLabels=0.3 , cex.rowText = 0.2)
 dev.off()
 
-
+### a beautiful view of dendogram in circle layout
+# pdf("fanview.pdf")
+# plot(as.phylo(IDsTree), type = "fan" , cex = 0.1 )
+# dev.off()
 
     
 #Analysis of scale free topology for multiple soft thresholding powers
+powers <- c(seq(1, 10, by = 1), seq(12, 20, by = 2))
 sft <- pickSoftThreshold.fromSimilarity(
     simil_mat,
-    powerVector = c(seq(1, 10, by = 1), seq(12, 20, by = 2)),
+    powerVector = powers,
     removeFirst = FALSE, nBreaks = 10, blockSize = 1000,
     moreNetworkConcepts=FALSE,
     verbose = 2, indent = 0)
