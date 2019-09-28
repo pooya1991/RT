@@ -35,10 +35,19 @@ simil_mat[is.na(simil_mat)] <- 0
 
 # calculating adjacency matric for hard threshold (t0 = 0.7) by the choice of parameters
 
+adj_mat1 <- simil_mat
+size <- 3631
 t0 <- 0.7
 
-adj_mat1 <- matrix(0, ncol = ncol(simil_mat), nrow = nrow(simil_mat))
-adj_mat1[simil_mat > t0] <- 1
+for (i in 1:size ){
+    for (j in 1:size){
+        if (adj_mat1[i,j] > t0 ) {
+            adj_mat1[i,j] <- 1
+        } else {
+            adj_mat1[i,j] <- 0
+        }
+    }
+}
 diag(adj_mat1) <- 0
 
 # calculating adjacency matrix with sigmoid function
@@ -55,9 +64,9 @@ A <- adjacency.fromSimilarity(simil_mat,
                          type = "unsigned",
                          power = 6)
 
-k <- colSums(A)
+k <- as.numeric(apply(A,2, sum))-1 
 # standardize the connectivity 
-Z.k <- scale(k)
+Z.k <- scale (k)
 max(Z.k)
 min(Z.k)
 thresholdZ.k <- -2.5
