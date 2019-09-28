@@ -1,14 +1,26 @@
-### Topology Overlap Matrix : In this method first i calculate the correlation between our variables.
-# i use the correlation matrix to derive the adjacency matrix. there are two choices whether the 
-# relation between Variables will be weighted(soft thresholding) or unweighted(hard thresholding).
-# in the latter the resulting adjacency matrix will have just 0 , 1. 
-
 install.packages("BiocManager")
 BiocManager::install("WGCNA")
 library(tidyverse)
 library(viridis)
 
-### the valid_centered_wide data has 3631 sample(IDs) and 99 featurs(occr)
+# Topology Overlap Matrix ------------------------------------- 
+# In this method first we need to calculate the correlation between our variables, then we derive 
+# similarity matrix from correlation. As we find the similarity matrix we will be capable of calculating
+# adjacency matrix;in this step we will consider different thresholds. There are two choices whether the 
+# relation between Variables will be weighted(soft thresholding) or unweighted(hard thresholding).
+# in the latter case the resulting adjacency matrix will have just 0 , 1. 
+# I am using the WGCNA package. The WGCNA as an analysis method is described in :
+# Zhang B and Horvath S (2005) 
+# "A General Framework for Weighted Gene Co-Expression Network Analysis, Statistical Applications 
+# in Genetics and Molecular Biology": Vol. 4: No. 1, Article 17 PMID: 16646834.
+
+# import data -----------------------------------------------
+# the valid_centered_wide is a dataframe consists 3631 rows and 99 columns.The first 
+# column contains the IDs and the rest of the columns are measurements for
+# each occurrence. So the number of rows equals the number of IDs and the number of columns
+# is equal to the number of occurrences plus one.
+
+#Similarity Matrix
 
 simil_mat <- valid_centered_wide %>% 
     select(-id) %>%
@@ -32,31 +44,7 @@ diag(simil_mat) <- 1
 # overlapping measurements. We assign 0 to these entries.
 simil_mat[is.na(simil_mat)] <- 0
 
-
-# calculating adjacency matric for hard threshold (t0 = 0.7) by the choice of parameters
-
-adj_mat1 <- simil_mat
-size <- 3631
-t0 <- 0.7
-
-for (i in 1:size ){
-    for (j in 1:size){
-        if (adj_mat1[i,j] > t0 ) {
-            adj_mat1[i,j] <- 1
-        } else {
-            adj_mat1[i,j] <- 0
-        }
-    }
-}
-diag(adj_mat1) <- 0
-
-# calculating adjacency matrix with sigmoid function
-alpha <- 10 
-t0 <- 0.5
-adj_mat2 <- 1/(1 + exp(-alpha*(simil_mat-t0)))
-diag(adj_mat2) <- 0
-
-# calculating adjacency matrix with power function(soft threshold), i checked for positive and symmetricity of
+# calculating adjacency matrix with power function(soft threshold),I checked for positive and symmetricity of
 # similarity matrix and adjacency matix
 # adjacency = power(similarity , \beta) ,\beta is the parameter should be chosen. 
 
@@ -64,7 +52,7 @@ A <- adjacency.fromSimilarity(simil_mat,
                          type = "unsigned",
                          power = 6)
 
-k <- as.numeric(apply(A,2, sum))-1 
+k <- colSums(A)-1 
 # standardize the connectivity 
 Z.k <- scale (k)
 max(Z.k)
@@ -74,12 +62,22 @@ outliercolor <- ifelse(Z.k < thresholdZ.k, "black" , "red")
 connectivity_color <- data.frame(numbers2colors(Z.k,signed = TRUE))
 datcolor <- data.frame(outlier=outliercolor, connectivity_color)
 IDsTree <- hclust(as.dist(1-A) , method = "average")
+#ids_clusts <- 
+   
 pdf("dendogram IDs.pdf")
-plotDendroAndColors(IDsTree,colors = datcolor, groupLabels = c("outlier","connectivitycolor"),
+plotDendroAndColors(IDsTree,colors = datcolor, groupLabels = c("outlier= black","connectivitycolor"),
                     main ="Dendogram of IDs" , cex.dendroLabels=0.3 , cex.rowText = 0.2)
+dev.off() 
+
+# In order to get clear values at the bottom of dendrogram in clustering, I used the following way of 
+# generating the dendrogram plot, but still it is messy !!!
+
+svg(width=50)
+plot(IDsTree, hang=-1, cex=0.3)
 dev.off()
 
-### a beautiful view of dendogram in circle layout
+
+### a beautiful view of dendogram in circle layout---- it needs to be modified !!!!
 # pdf("fanview.pdf")
 # plot(as.phylo(IDsTree), type = "fan" , cex = 0.1 )
 # dev.off()
@@ -94,14 +92,3 @@ sft <- pickSoftThreshold.fromSimilarity(
     moreNetworkConcepts=FALSE,
     verbose = 2, indent = 0)
 
-
-newdata <- valid_centered_wide %>% 
-    select(-id) %>%
-    data.matrix %>%
-    # transposing the matrix is needed because we want to compute cosine similarity between IDs
-    # so we need IDs to be the columns of the matrix
-    t() %>%
-    `colnames<-`(valid_centered_wide$id)
-pdf("boxplot of IDs.pdf")
-boxplot(newdata , show.names=T , las= 2 ,  cex.axis = 0.5 , col=rainbow(10, alpha=0.5))
-dev.off()
