@@ -44,7 +44,27 @@ diag(simil_mat) <- 1
 # overlapping measurements. We assign 0 to these entries.
 simil_mat[is.na(simil_mat)] <- 0
 
+<<<<<<< HEAD
 # calculating adjacency matrix with power function(soft threshold),I checked for positive and symmetricity of
+=======
+
+# calculating adjacency matric for hard threshold (t0 = 0.7) by the choice of parameters
+
+t0 <- 0.7
+
+adj_mat1 <- matrix(0, ncol = ncol(simil_mat), nrow = nrow(simil_mat))
+adj_mat1[simil_mat > t0] <- 1
+diag(adj_mat1) <- 0
+
+
+# calculating adjacency matrix with sigmoid function
+alpha <- 10 
+t0 <- 0.5
+adj_mat2 <- 1/(1 + exp(-alpha*(simil_mat-t0)))
+diag(adj_mat2) <- 0
+
+# calculating adjacency matrix with power function(soft threshold), i checked for positive and symmetricity of
+>>>>>>> 7f8d6a71e6f86fbdfdf8ad5267552734e4d87f1d
 # similarity matrix and adjacency matix
 # adjacency = power(similarity , \beta) ,\beta is the parameter should be chosen. 
 
@@ -52,7 +72,11 @@ A <- adjacency.fromSimilarity(simil_mat,
                          type = "unsigned",
                          power = 6)
 
+<<<<<<< HEAD
 k <- colSums(A)-1 
+=======
+k <- colSums(A) - 1
+>>>>>>> 7f8d6a71e6f86fbdfdf8ad5267552734e4d87f1d
 # standardize the connectivity 
 Z.k <- scale (k)
 max(Z.k)
