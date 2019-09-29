@@ -97,7 +97,8 @@ dev.off()
 # dev.off()
 
     
-#Analysis of scale free topology for multiple soft thresholding powers
+# Analysis of scale free topology for multiple soft thresholding powers
+# I am trying to find the optimum power which yeild a scale free of variables
 powers <- c(seq(1, 10, by = 1), seq(12, 20, by = 2))
 sft <- pickSoftThreshold.fromSimilarity(
     simil_mat,
@@ -106,3 +107,15 @@ sft <- pickSoftThreshold.fromSimilarity(
     moreNetworkConcepts=FALSE,
     verbose = 2, indent = 0)
 
+pdf("scale Independance.pdf")
+par(mfrow=c(1,2))
+cexl=0.5
+plot(sft$fitIndices[,1] , -sign(sft$fitIndices[,3])*sft$fitIndices[,2] , xlab= "soft threshold" ,
+     ylab = "scale free topology model fit" , type="n" , main ="scale Independence")
+text(sft$fitIndices[,1] ,-sign(sft$fitIndices[,3])*sft$fitIndices[,2] , labels = powers , cex=0.5 ,
+     col = "red")
+
+plot(sft$fitIndices[,1] , sft$fitIndices[ , 5] , xlab = "soft threshold" , ylab = "mean connectivity",
+     type = "n" , main = "mean connectivity")
+text(sft$fitIndices[,1] , sft$fitIndices[,5] , labels = powers , cex=0.5 , col = "red")
+dev.off()
