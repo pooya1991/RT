@@ -69,8 +69,11 @@ datcolor <- data.frame(outlier=outliercolor, connectivity_color)
 IDsTree <- hclust(as.dist(1-A) , method = "complete")
 
 ids_clusts <- cutree(IDsTree , h=0.8)
-groups <- cbind (ids_clusts)
-print(groups)
+ids_clusts <- ids_clusts %>% 
+    enframe("id", "cluster") %>% 
+    mutate(id = as.integer(id)) %>% 
+    arrange(id) %>% 
+    mutate(id = factor(id))
 
 # In order to get clear values at the bottom of dendrogram in clustering, I used the following way of 
 # generating the dendrogram plot, but still it is messy !!!
