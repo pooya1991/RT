@@ -45,35 +45,20 @@ diag(simil_mat) <- 1
 simil_mat[is.na(simil_mat)] <- 0
 
 
-# calculating adjacency matrix with power function(soft threshold),I checked for positive and symmetricity of
+# calculating adjacency matrix with power function(soft threshold),I checked for positive and
+# symmetricity of similarity and adjacency matrix
 
-# calculating adjacency matric for hard threshold (t0 = 0.7) by the choice of parameters
-
-t0 <- 0.7
-
-adj_mat1 <- matrix(0, ncol = ncol(simil_mat), nrow = nrow(simil_mat))
-adj_mat1[simil_mat > t0] <- 1
-diag(adj_mat1) <- 0
-
-
-# calculating adjacency matrix with sigmoid function
-alpha <- 10 
-t0 <- 0.5
-adj_mat2 <- 1/(1 + exp(-alpha*(simil_mat-t0)))
-diag(adj_mat2) <- 0
 
 # calculating adjacency matrix with power function(soft threshold), i checked for positive and symmetricity of
 # similarity matrix and adjacency matix
 # adjacency = power(similarity , \beta) ,\beta is the parameter should be chosen. 
 
-A <- adjacency.fromSimilarity(simil_mat,
-                         type = "unsigned",
-                         power = 6)
+A <- adjacency.fromSimilarity(simil_mat,type = "unsigned",power = 6)
 
-
+#connectivity
 k <- colSums(A) - 1
-
-# standardize the connectivity 
+# standardize the connectivity , based on max , min values in connectivity, i define a threshold.
+# values which are around minimum i called them outliers(black color) 
 Z.k <- scale (k)
 max(Z.k)
 min(Z.k)
@@ -81,20 +66,29 @@ thresholdZ.k <- -2.5
 outliercolor <- ifelse(Z.k < thresholdZ.k, "black" , "red")
 connectivity_color <- data.frame(numbers2colors(Z.k,signed = TRUE))
 datcolor <- data.frame(outlier=outliercolor, connectivity_color)
-IDsTree <- hclust(as.dist(1-A) , method = "average")
-#ids_clusts <- 
-   
-pdf("dendogram IDs.pdf")
-plotDendroAndColors(IDsTree,colors = datcolor, groupLabels = c("outlier= black","connectivitycolor"),
-                    main ="Dendogram of IDs" , cex.dendroLabels=0.3 , cex.rowText = 0.2)
-dev.off() 
+IDsTree <- hclust(as.dist(1-A) , method = "complete")
+
+ids_clusts <- cutree(IDsTree , h=0.8)
+groups <- cbind (ids_clusts)
+print(groups)
 
 # In order to get clear values at the bottom of dendrogram in clustering, I used the following way of 
 # generating the dendrogram plot, but still it is messy !!!
 
-svg(width=50)
-plot(IDsTree, hang=-1, cex=0.3)
+dendoIDsTree <- as.dendrogram(IDsTree)
+
+svg(width = 60)
+par(mfrow=c(2,1))
+plot(dendoIDsTree ,cex=0.3 , main = "Main , methoe = complete"  )
+plot(cut(dendoIDsTree, h=0.8)$upper, cex = 0.3 , main = "upper tree with cut at h=0.8")
 dev.off()
+
+
+   
+# pdf("dendogram IDs.pdf")
+# plotDendroAndColors(IDsTree,colors = datcolor, groupLabels = c("outlier= black","connectivitycolor"),
+#                     main ="Dendogram of IDs" , cex.dendroLabels=0.3 , cex.rowText = 0.2)
+# dev.off() 
 
 
 ### a beautiful view of dendogram in circle layout---- it needs to be modified !!!!
