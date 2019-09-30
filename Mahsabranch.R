@@ -2,6 +2,7 @@ install.packages("BiocManager")
 BiocManager::install("WGCNA")
 library(tidyverse)
 library(viridis)
+library(WGCNA)
 
 # Topology Overlap Matrix ------------------------------------- 
 # In this method first we need to calculate the correlation between our variables, then we derive 
@@ -55,15 +56,16 @@ simil_mat[is.na(simil_mat)] <- 0
 
 A <- adjacency.fromSimilarity(simil_mat,type = "unsigned",power = 6)
 
-#connectivity
+# this calculates the connectivity
 k <- colSums(A) - 1
-# standardize the connectivity , based on max , min values in connectivity, i define a threshold.
-# values which are around minimum i called them outliers(black color) 
+# standardize the connectivity. Based on max , min values in connectivity, i define a threshold.
 Z.k <- scale (k)
 max(Z.k)
 min(Z.k)
+# Designate outliers if their Z.k value is below the threshold
 thresholdZ.k <- -2.5
-outliercolor <- ifelse(Z.k < thresholdZ.k, "black" , "red")
+#the color vector indicates outliers (red)
+outliercolor <- ifelse(Z.k < thresholdZ.k, "red" , "black")
 connectivity_color <- data.frame(numbers2colors(Z.k,signed = TRUE))
 datcolor <- data.frame(outlier=outliercolor, connectivity_color)
 IDsTree <- hclust(as.dist(1-A) , method = "complete")
@@ -102,7 +104,8 @@ dev.off()
     
 # Analysis of scale free topology for multiple soft thresholding powers
 # I am trying to find the optimum power which yeild a scale free of variables
-powers <- c(seq(1, 10, by = 1), seq(12, 20, by = 2))
+# Choose a set of soft thresholding powers
+powers <- c(seq(1, 10, by = 1), seq(12, 200, by = 2))
 sft <- pickSoftThreshold.fromSimilarity(
     simil_mat,
     powerVector = powers,
@@ -111,14 +114,32 @@ sft <- pickSoftThreshold.fromSimilarity(
     verbose = 2, indent = 0)
 
 pdf("scale Independance.pdf")
-par(mfrow=c(1,2))
+#par(mfrow=c(1,2))
 cexl=0.5
-plot(sft$fitIndices[,1] , -sign(sft$fitIndices[,3])*sft$fitIndices[,2] , xlab= "soft threshold" ,
-     ylab = "scale free topology model fit" , type="n" , main ="scale Independence")
+# SFT index as a function of different powers
+plot(sft$fitIndices[,1] , -sign(sft$fitIndices[,3])*sft$fitIndices[,2] , xlab= "soft threshold(power)" ,
+     ylab = "scale free topology model fit R^2" , type="n" , main ="scale Independence")
 text(sft$fitIndices[,1] ,-sign(sft$fitIndices[,3])*sft$fitIndices[,2] , labels = powers , cex=0.5 ,
      col = "red")
 
-plot(sft$fitIndices[,1] , sft$fitIndices[ , 5] , xlab = "soft threshold" , ylab = "mean connectivity",
-     type = "n" , main = "mean connectivity")
-text(sft$fitIndices[,1] , sft$fitIndices[,5] , labels = powers , cex=0.5 , col = "red")
+# Mean connectivity as a function of different powers
+# plot(sft$fitIndices[,1] , sft$fitIndices[ , 5] , xlab = "soft threshold" , ylab = "mean connectivity",
+#      type = "n" , main = "mean connectivity")
+# text(sft$fitIndices[,1] , sft$fitIndices[,5] , labels = powers , cex=0.5 , col = "red")
 dev.off()
+ 
+# spectral clustering ------------------------------------------
+# similarity matrix and spectral clustering 
+install.packages("kknn")
+install.packages("kernlab")
+BiocManager::install("SamSPECTRAL")
+library(SamSPECTRAL)
+library(kernlab)
+
+# distance matrix 
+Ids_dist <- simil_mat - 1
+# adjacency matrix 
+A <- exp(- (Ids_dist)**2/(sigma))
+deg <- colSums(A != 0)
+D <- diag(deg , nrow = 3631 , ncol = 3631 )
+L <- D - A
