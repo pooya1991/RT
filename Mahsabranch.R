@@ -137,7 +137,22 @@ library(SamSPECTRAL)
 library(kernlab)
 
 # distance matrix 
-Ids_dist <- simil_mat - 1
+Ids_dist <-  1 - simil_mat
+
+# distance matrix
+Ids_dist1 <- simil_mat - diag(x=1 , nrow = 3631 , ncol = 3631)
+
+# sort each row, ascending
+
+AffinityMatrix <- function(Ids_dist , k=7){
+    knn_distance <- apply(Ids_dist , 1 , sort)
+    row.names(knn_distance) <- colnames(Ids_dist)
+    
+}
+
+local_scale <- 
+affinitymatrix <- -(Ids_dist*Ids_dist)/local_scale
+
 # adjacency matrix 
 A <- exp(- (Ids_dist)**2/(sigma))
 deg <- colSums(A != 0)
