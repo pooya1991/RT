@@ -128,18 +128,14 @@ text(sft$fitIndices[,1] ,-sign(sft$fitIndices[,3])*sft$fitIndices[,2] , labels =
 # text(sft$fitIndices[,1] , sft$fitIndices[,5] , labels = powers , cex=0.5 , col = "red")
 dev.off()
  
-# spectral clustering ------------------------------------------
+# spectral clustering -----------------------------------------------------------
 # similarity matrix and spectral clustering 
-install.packages("kknn")
-install.packages("kernlab")
-BiocManager::install("SamSPECTRAL")
-library(SamSPECTRAL)
-library(kernlab)
+library(RSpectra)
 
 # distance matrix 
 Ids_dist <-  1 - simil_mat
 
-
+## based on the view of difference between eigenvalues--------------------------
 affinitymatrix <- list()
 for ( i in 1:10){
     sigma <- seq(0.1 , 1 , 0.1)
@@ -152,9 +148,54 @@ A <- affinitymatrix[[1]]
 deg <- colSums(A != 0)
 D <- diag(deg , nrow = 3631 , ncol = 3631 )
 L <- D - A
+
+# calculating eigenvalues and eigenvectors of laplacian matrix
 eigenvalues <- eigen(L)$values
 eigenvectors <- eigen(L)$vectors
-largest_gap <- sort(abs(diff(eigenvalues)) , decreasing = T)
+largest_gap <- abs(diff(eigenvalues))
+
 
 plot(1:10 , eigenvalues[1:10] , main = "largest eigenvalues of matrix" , type="p" , col="blue" ,
      pch = 21 , bg="blue" )
+
+
+## based on paper --------------------------------------------------------------
+nn <- 7
+size <- dim(Ids_dist)[1]
+# intialize the knn matrix
+knn_mat <- matrix(0, nrow = size , ncol = size)
+neighbor_index <- matrix(0, nrow = size , ncol = nn)
+# find the 7 nearest neighbors for each point, considering local scale
+for (i in 1:size){
+    neighbor_index[i,] <- order(Ids_dist[i,])[2:(nn + 1)]
+    knn_mat[i,][neighbor_index] <- 1 
+}
+
+colnames(neighbor_index) <- seq(1 , 7 , 1)
+row.names(neighbor_index) <- colnames(Ids_dist)
+# According to paper the 7th neighbor is chosen( here i consider 7th nearest neighbor)
+# i find the local_scale.local_scale is the distance between each Id and its 7th nearest neighbor
+local_scale <- c()
+for (i in 1:size){
+    local_scale [i] <- Ids_dist[i , neighbor_index[ i,nn]]
+}
+
+
+# deriving affinity matrix . I should divide the all columns of (distance)^2 by local_scale(vector)
+affmat <- exp(-(Ids_dist*Ids_dist)/local_scale)
+# degrees of vertices
+g <- colSums( affmat !=0 )
+ 
+# normalizatoin 
+D_half <- diag(1 / sqrt(g) )
+
+# normalized laplacian matrix
+# subtracting normalized affinity matrix from Identity matrix 
+normal_laplacian <- diag(size) - (D_half %*% affmat %*% D_half)
+
+res = eigs_sym(normal_laplacian , k=15, which = "LM")  #"LM" is the default largest magnitude , 10 largest eigenvectors
+eigenvalues <- res$values
+eigenvectors <- res$vectors
+
+# in this step people use kmeans with a MANUALLY chosen number of clusters, but I am following the
+# algorithm of paper then there is another way to determine the optimum number of clusters
