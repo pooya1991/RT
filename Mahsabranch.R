@@ -139,22 +139,22 @@ library(kernlab)
 # distance matrix 
 Ids_dist <-  1 - simil_mat
 
-# distance matrix
-Ids_dist1 <- simil_mat - diag(x=1 , nrow = 3631 , ncol = 3631)
 
-# sort each row, ascending
-
-AffinityMatrix <- function(Ids_dist , k=7){
-    knn_distance <- apply(Ids_dist , 1 , sort)
-    row.names(knn_distance) <- colnames(Ids_dist)
-    
+affinitymatrix <- list()
+for ( i in 1:10){
+    sigma <- seq(0.1 , 1 , 0.1)
+    affinitymatrix[[i]] <- exp(-(Ids_dist*Ids_dist)/sigma[i])
+    diag(affinitymatrix[[i]]) <- 0
 }
 
-local_scale <- 
-affinitymatrix <- -(Ids_dist*Ids_dist)/local_scale
-
 # adjacency matrix 
-A <- exp(- (Ids_dist)**2/(sigma))
+A <- affinitymatrix[[1]]
 deg <- colSums(A != 0)
 D <- diag(deg , nrow = 3631 , ncol = 3631 )
 L <- D - A
+eigenvalues <- eigen(L)$values
+eigenvectors <- eigen(L)$vectors
+largest_gap <- sort(abs(diff(eigenvalues)) , decreasing = T)
+
+plot(1:10 , eigenvalues[1:10] , main = "largest eigenvalues of matrix" , type="p" , col="blue" ,
+     pch = 21 , bg="blue" )
