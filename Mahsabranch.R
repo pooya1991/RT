@@ -128,30 +128,48 @@ text(sft$fitIndices[,1] ,-sign(sft$fitIndices[,3])*sft$fitIndices[,2] , labels =
 # text(sft$fitIndices[,1] , sft$fitIndices[,5] , labels = powers , cex=0.5 , col = "red")
 dev.off()
  
-# spectral clustering -----------------------------------------------------------
+# SPECTRAL CLUSTERING  -----------------------------------------------------------
 # similarity matrix and spectral clustering 
 library(RSpectra)
 
 # distance matrix 
 Ids_dist <-  1 - simil_mat
 
-## based on the view of difference between eigenvalues--------------------------
-affinitymatrix <- list()
-for ( i in 1:10){
-    sigma <- seq(0.1 , 1 , 0.1)
-    affinitymatrix[[i]] <- exp(-(Ids_dist*Ids_dist)/sigma[i])
-    diag(affinitymatrix[[i]]) <- 0
+## Based on the view of difference between eigenvalues---------------------------
+# The optimal number of clusters by eigengap heuristic
+nn <- 7
+size <- dim(Ids_dist)[1]
+# intialize the k-nearest neighbor matrix
+knn_mat <- matrix(0, nrow = size , ncol = size)
+neighbor_index <- matrix(0, nrow = size , ncol = nn)
+# find the 7 nearest neighbors for each point, considering local scale
+for (i in 1:size){
+    neighbor_index[i,] <- order(Ids_dist[i,])[2:(nn + 1)]
+    knn_mat[i,][neighbor_index] <- 1 
 }
 
-# adjacency matrix 
-A <- affinitymatrix[[1]]
-deg <- colSums(A != 0)
-D <- diag(deg , nrow = 3631 , ncol = 3631 )
-L <- D - A
+colnames(neighbor_index) <- seq(1 , 7 , 1)
+row.names(neighbor_index) <- colnames(Ids_dist)
+# k'th position is chosen( here i consider 1th nearest neighbor)
+# i find the local_scale.local_scale is the distance between each Id and its 1th nearest neighbor
+local_scale1 <- c()
+for (i in 1:size){
+    local_scale1 [i] <- Ids_dist[i , neighbor_index[ i,1]]
+}
+
+# Affinity matrix by considering local scale ( 1th nearest neighbor)
+affinitymatirx <- exp(-(Ids_dist*Ids_dist)/local_scale1)
+diag(affinitymatirx) <- 0
+# A diagonal matrix which diagonal elements are degree of each variable in affinity matrix
+deg <- colSums(affinitymatirx != 0)
+D <- diag(1 / sqrt(deg))
+# laplacian matrix
+L <- diag(deg) - affinitymatirx
+# Normalized laplacian matrix
+N_L <- D %*% L %*% D
 
 # calculating eigenvalues and eigenvectors of laplacian matrix
-eigenvalues <- eigen(L)$values
-eigenvectors <- eigen(L)$vectors
+eigenvalues <- eigen(N_L)$values
 largest_gap <- abs(diff(eigenvalues))
 
 
