@@ -105,7 +105,7 @@ dev.off()
 # Analysis of scale free topology for multiple soft thresholding powers
 # I am trying to find the optimum power which yeild a scale free of variables
 # Choose a set of soft thresholding powers
-powers <- c(seq(1, 10, by = 1), seq(12, 200, by = 2))
+powers <- c(seq(1, 10, by = 1), seq(12, 20, by = 2))
 sft <- pickSoftThreshold.fromSimilarity(
     simil_mat,
     powerVector = powers,
@@ -135,7 +135,7 @@ library(RSpectra)
 # distance matrix 
 Ids_dist <-  1 - simil_mat
 
-## Based on the view of difference between eigenvalues---------------------------
+## Based on the view of difference between eigenvalues----------------------------
 # The optimal number of clusters by eigengap heuristic
 nn <- 7
 size <- dim(Ids_dist)[1]
@@ -150,15 +150,20 @@ for (i in 1:size){
 
 colnames(neighbor_index) <- seq(1 , 7 , 1)
 row.names(neighbor_index) <- colnames(Ids_dist)
-# k'th position is chosen( here i consider 1th nearest neighbor)
-# i find the local_scale.local_scale is the distance between each Id and its 1th nearest neighbor
+# k'th position is chosen( here I consider 1th nearest neighbor)
+# I find the local_scale.The local_scale is the distance between each Id and its 1th nearest neighbor
 local_scale1 <- c()
 for (i in 1:size){
     local_scale1 [i] <- Ids_dist[i , neighbor_index[ i,1]]
 }
 
-# Affinity matrix by considering local scale ( 1th nearest neighbor)
-affinitymatirx <- exp(-(Ids_dist*Ids_dist)/local_scale1)
+local_scale1 <- matrix(local_scale1 , nrow = size , ncol = 1)
+
+# calculating sigma i * sigma j
+sigma <- local_scale1 %*% t(local_scale1)
+
+# Affinity matrix by considering local_scale ( 1th nearest neighbor)
+affinitymatirx <- exp(-(Ids_dist*Ids_dist)/sigma)
 diag(affinitymatirx) <- 0
 # A diagonal matrix which diagonal elements are degree of each variable in affinity matrix
 deg <- colSums(affinitymatirx != 0)
@@ -177,7 +182,7 @@ plot(1:10 , eigenvalues[1:10] , main = "largest eigenvalues of matrix" , type="p
      pch = 21 , bg="blue" )
 
 
-## based on paper --------------------------------------------------------------
+## Based on paper: self-tuning spectral clustering ---------------------------------------------------
 nn <- 7
 size <- dim(Ids_dist)[1]
 # intialize the knn matrix
