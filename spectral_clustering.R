@@ -1,4 +1,5 @@
 library(tidyverse)
+library(RSpectra)
 
 X <- scan("data/X.csv", sep = ",")
 X <- matrix(X, ncol = 2, byrow = TRUE)
@@ -24,3 +25,13 @@ D <- diag(1 / sqrt(degs))
 
 # computing the normalized laplacian matrix
 L <- D %*% W %*% D
+
+# eigenvalues with largest magnitude 
+##res = eigs_sym(L , k=k, which = "LM") !!!!
+eigenvalues <- eigen(L)$values
+eigenvectors <- eigen(L)$vectors
+
+pdf("largest eigenvalues of matrix.pdf")
+plot( 1:length(eigenvalues) , eigenvalues , main = "largest eigenvalues of matrix" , type="p",
+      col="green" ,pch = 16 , bg="red" )
+dev.off()
