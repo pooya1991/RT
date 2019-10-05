@@ -51,3 +51,20 @@ dev.off()
 # recommended optimal number of clusters 
 index_largest_gap <- which.max(abs(diff(sort(eigenvalues , decreasing = F))))
 
+
+# Using function spectralclustering==================================
+library(anocva)
+library(gridExtra)
+cluster_predict = spectralClustering(W, 7)
+
+g1 <- ggplot(df, aes(x1, x2)) +
+  geom_point(aes(color = factor(clusters_true)), show.legend = FALSE, size = 3) +
+  scale_color_viridis_d() +
+  labs(x = NULL, y = NULL, title = "Ground truth simulated data : 7 clusters")
+
+g2 <- ggplot(df, aes(x1, x2)) +
+  geom_point(aes(color = factor(cluster_predict)), show.legend = FALSE, size = 3) +
+  scale_color_viridis_d() +
+  labs(x = NULL, y = NULL, title = "Spectral clustering result")
+
+grid.arrange(g2, g1, ncol=2)
