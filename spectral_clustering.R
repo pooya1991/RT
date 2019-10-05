@@ -79,12 +79,12 @@ sil_plot <- silhouette(pam_k7)
 pam_k7$silinfo$avg.width
 
 # for different number of k
-sil_width <- map_dbl(3:10 , function(k){
+sil_width <- map_dbl(2:10 , function(k){
   mod <- pam( x=X , k=k)
   mod$silinfo$avg.width
 })
 
-sil_df <- data.frame(k= 3:10 , sil_width = sil_width)
+sil_df <- data.frame(k= 2:10 , sil_width = sil_width)
 #print(sil_df)
 
 ggplot(sil_df , aes(x=k , y= sil_width)) + geom_line()+
@@ -111,13 +111,12 @@ clust_k7 <- model_k7$cluster
 
 
 # internalValidation
-internalvalidation <- function(X,y_pred){
-  sil_width <- map_dbl(k=3:10 , function(k){
+internalvalidation <- function(X){
+  sil_width <- map_dbl(2:10 , function(k){
     mod <- pam( x=X , k=k)
     mod$silinfo$avg.width
   })
-  optimal_numberof_cluster <- which.max(sil_width)
-  pam_k <- pam(X , k=optimal_numberof_cluster)
-  y_pred <- pam_k$clustering
+  score <- max(sil_width)
+  return(score)
 }
 
