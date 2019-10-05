@@ -1,5 +1,4 @@
 library(tidyverse)
-library(ggplot2)
 library(RSpectra)
 
 X <- scan("data/X.csv", sep = ",")
@@ -55,7 +54,7 @@ index_largest_gap <- which.max(abs(diff(sort(eigenvalues , decreasing = F))))
 # Using function spectralclustering==================================
 library(anocva)
 library(gridExtra)
-cluster_predict = spectralClustering(W, 7)
+cluster_predict = anocva::spectralClustering(W, 7)
 
 g1 <- ggplot(df, aes(x1, x2)) +
   geom_point(aes(color = factor(clusters_true)), show.legend = FALSE, size = 3) +
@@ -69,17 +68,29 @@ g2 <- ggplot(df, aes(x1, x2)) +
 
 grid.arrange(g2, g1, ncol=2)
 
-# cheking result by elbowmwthod , hierarchiacal clustering 
-## hierarchiacal clustering 
-dist_data <- dist(X , method = 'euclidean')
-hc_dist_data <- hclust(dist_data , method ='complete')
+# cheking result by elbowmwthod , silhouette method============================================
+## Clustering silhouette method
+library(cluster)
+pam_k7 <- pam(X , k=7)
+pam_k7$silinfo$widths
 
-cluster <- cutree(hc_dist_data , h=5)
-plot(hc_dist_data  , labels = F , hang = -1)
-abline(h=5 , col = "red")
+sil_plot <- silhouette(pam_k7)
+#plot(sil_plot)
+pam_k7$silinfo$avg.width
 
-## Generating differnt kmean with different k - elbow method
-library(purrr)
+# for different number of k
+sil_width <- map_dbl(3:10 , function(k){
+  mod <- pam( x=X , k=k)
+  mod$silinfo$avg.width
+})
+
+sil_df <- data.frame(k= 3:10 , sil_width = sil_width)
+#print(sil_df)
+
+ggplot(sil_df , aes(x=k , y= sil_width)) + geom_line()+
+  scale_x_continuous(breaks = 2:10)+ labs(title = "Silhouette score values vs Numbers of Clusters")
+
+## Generating differnt kmean with different k - elbow method============================================
 tot_within <- map_dbl(1:10 , function(k){
   model <- kmeans ( x= X , centers = k)
   model$tot.withinss
@@ -90,25 +101,23 @@ elbow_df <- data.frame( k = 1:10 , tot_within =tot_within )
 print(elbow_df)
 
 ggplot(elbow_df , aes(x=k , y= tot_within , color = "chartreuse"))+
-  geom_line(show.legend = F , linetype = "dashed")+ geom_point(color="blue" , size=1)
+  geom_line(show.legend = F , linetype = "dashed")+ geom_point(color="blue" , size=1)+
+  labs(title = "The Elbow Method showing the optimal k")
+
 ## kmeans cluatering
 model_k7 <- kmeans(X , centers = 7)
 clust_k7 <- model_k7$cluster
 
-Y <- Y+1
-results <- as_tibble(cbind(cluster , clust_k7 , Y), .name_repair = "unique") %>% 
-  set_names(c("hierarchiacal", "kmeans", "clusters_true"))
 
-members <- rbind(hierarchiacal= table(cluster), kmeans=table(clust_k7) , cluster_true =table(Y) )
 
-g3 <- ggplot(df, aes(x1, x2)) +
-  geom_point(aes(color = factor(cluster)), show.legend = FALSE, size = 3) +
-  scale_color_viridis_d() +
-  labs(x = NULL, y = NULL, title = "hierarchiacal clustering result")
+# internalValidation
+internalvalidation <- function(X,y_pred){
+  sil_width <- map_dbl(k=3:10 , function(k){
+    mod <- pam( x=X , k=k)
+    mod$silinfo$avg.width
+  })
+  optimal_numberof_cluster <- which.max(sil_width)
+  pam_k <- pam(X , k=optimal_numberof_cluster)
+  y_pred <- pam_k$clustering
+}
 
-g4 <- ggplot(df, aes(x1, x2)) +
-  geom_point(aes(color = factor(clust_k7)), show.legend = FALSE, size = 3) +
-  scale_color_viridis_d() +
-  labs(x = NULL, y = NULL, title = "kmeans clustering result")
-
-grid.arrange(g1, g2, g3 , g4 , nrow=2 , ncol=2)
