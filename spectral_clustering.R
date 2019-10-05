@@ -35,3 +35,5 @@ pdf("largest eigenvalues of matrix.pdf")
 plot( 1:length(eigenvalues) , eigenvalues , main = "largest eigenvalues of matrix" , type="p",
       col="green" ,pch = 16 , bg="red" )
 dev.off()
+
+#
