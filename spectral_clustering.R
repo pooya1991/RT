@@ -1,10 +1,21 @@
 library(tidyverse)
+library(ggplot2)
 library(RSpectra)
 
 X <- scan("data/X.csv", sep = ",")
 X <- matrix(X, ncol = 2, byrow = TRUE)
 Y <- scan("data/y_true.csv", sep = ",")
-Y <- matrix(Y, nrow = 1)
+Y <- matrix(Y, ncol = 1)
+
+# visualizing true clusters
+df <- as_tibble(cbind(X, Y), .name_repair = "unique") %>% 
+    set_names(c("x1", "x2", "clusters_true")) %>% 
+    mutate(clusters_true = as.integer(clusters_true))
+
+ggplot(df, aes(x1, x2)) +
+    geom_point(aes(color = factor(clusters_true)), show.legend = FALSE, size = 3) +
+    scale_color_viridis_d() +
+    labs(x = NULL, y = NULL, title = "Ground truth simulated data : 7 clusters")
 
 k <- 11
 dist_mat <- dist(X) %>% as.matrix()
@@ -39,13 +50,3 @@ dev.off()
 
 # recommended optimal number of clusters 
 index_largest_gap <- which.max(abs(diff(sort(eigenvalues , decreasing = F))))
-
-library(ggplot2)
-X <- as.data.frame(X)
-Y <- as.integer(Y)
-ggplot(X , aes( x = X[,1]  , y = X[,2] , color= Y ))+
-     geom_point()+scale_color_gradientn(colours = rainbow(5)) +
-    ggtitle("Ground truth simulated data : 7clusters")
-
-
-
