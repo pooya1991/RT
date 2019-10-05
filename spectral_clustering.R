@@ -39,3 +39,12 @@ dev.off()
 
 # recommended optimal number of clusters 
 index_largest_gap <- which.max(abs(diff(sort(eigenvalues , decreasing = F))))
+
+library(ggplot2)
+X <- as.data.frame(X)
+Y <- as.integer(Y)
+ggplot(X , aes( x = X[,1]  , y = X[,2] , color= Y , main = "Ground truth simulated data:7clusters"))+
+     geom_point()+scale_color_gradientn(colours = rainbow(5))
+
+
+
