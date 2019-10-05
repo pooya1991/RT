@@ -117,6 +117,6 @@ internalvalidation <- function(X){
     mod$silinfo$avg.width
   })
   score <- max(sil_width)
-  print('silhouette_score:',score)
+  return(score)
 }
 
