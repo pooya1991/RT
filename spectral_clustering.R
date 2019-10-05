@@ -36,4 +36,5 @@ plot( 1:length(eigenvalues) , eigenvalues , main = "largest eigenvalues of matri
       col="green" ,pch = 16 , bg="red" )
 dev.off()
 
-#
+# recommended optimal number of clusters 
+index_largest_gap <- which.max(abs(diff(eigenvalues)))
