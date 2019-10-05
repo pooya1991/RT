@@ -41,11 +41,13 @@ dev.off()
 index_largest_gap <- which.max(abs(diff(sort(eigenvalues , decreasing = F))))
 
 library(ggplot2)
+library(anocva)
 X <- as.data.frame(X)
 Y <- as.integer(Y)
 ggplot(X , aes( x = X[,1]  , y = X[,2] , color= Y ))+
      geom_point()+scale_color_gradientn(colours = rainbow(5)) +
     ggtitle("Ground truth simulated data : 7clusters")
 
-
-
+cluster_predict <- spectralClustering(W, 7)
+# See the result clustering
+plot(X , size=5, color = cluster_predict , main = "Spectral clustering results")
