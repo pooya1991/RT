@@ -68,3 +68,47 @@ g2 <- ggplot(df, aes(x1, x2)) +
   labs(x = NULL, y = NULL, title = "Spectral clustering result")
 
 grid.arrange(g2, g1, ncol=2)
+
+# cheking result by elbowmwthod , hierarchiacal clustering 
+## hierarchiacal clustering 
+dist_data <- dist(X , method = 'euclidean')
+hc_dist_data <- hclust(dist_data , method ='complete')
+
+cluster <- cutree(hc_dist_data , h=5)
+plot(hc_dist_data  , labels = F , hang = -1)
+abline(h=5 , col = "red")
+
+## Generating differnt kmean with different k - elbow method
+library(purrr)
+tot_within <- map_dbl(1:10 , function(k){
+  model <- kmeans ( x= X , centers = k)
+  model$tot.withinss
+  
+})
+elbow_df <- data.frame( k = 1:10 , tot_within =tot_within )
+
+print(elbow_df)
+
+ggplot(elbow_df , aes(x=k , y= tot_within , color = "chartreuse"))+
+  geom_line(show.legend = F , linetype = "dashed")+ geom_point(color="blue" , size=1)
+## kmeans cluatering
+model_k7 <- kmeans(X , centers = 7)
+clust_k7 <- model_k7$cluster
+
+Y <- Y+1
+results <- as_tibble(cbind(cluster , clust_k7 , Y), .name_repair = "unique") %>% 
+  set_names(c("hierarchiacal", "kmeans", "clusters_true"))
+
+members <- rbind(hierarchiacal= table(cluster), kmeans=table(clust_k7) , cluster_true =table(Y) )
+
+g3 <- ggplot(df, aes(x1, x2)) +
+  geom_point(aes(color = factor(cluster)), show.legend = FALSE, size = 3) +
+  scale_color_viridis_d() +
+  labs(x = NULL, y = NULL, title = "hierarchiacal clustering result")
+
+g4 <- ggplot(df, aes(x1, x2)) +
+  geom_point(aes(color = factor(clust_k7)), show.legend = FALSE, size = 3) +
+  scale_color_viridis_d() +
+  labs(x = NULL, y = NULL, title = "kmeans clustering result")
+
+grid.arrange(g1, g2, g3 , g4 , nrow=2 , ncol=2)
