@@ -24,7 +24,8 @@ degs[degs == 0] <- eps
 D <- diag(1 / sqrt(degs))
 
 # computing the normalized laplacian matrix
-L <- D %*% W %*% D
+n = nrow(D)
+L <- diag(n) - D %*% W %*% D
 
 # eigenvalues with largest magnitude 
 ##res = eigs_sym(L , k=k, which = "LM") !!!!
@@ -32,9 +33,9 @@ eigenvalues <- eigen(L)$values
 eigenvectors <- eigen(L)$vectors
 
 pdf("largest eigenvalues of matrix.pdf")
-plot( 1:length(eigenvalues) , eigenvalues , main = "largest eigenvalues of matrix" , type="p",
-      col="green" ,pch = 16 , bg="red" )
+plot( 1:length(eigenvalues) , sort(eigenvalues , decreasing = F) , main = "largest eigenvalues of matrix" , type="p",
+      col="blue" ,pch = 16 , bg="red" )
 dev.off()
 
 # recommended optimal number of clusters 
-index_largest_gap <- which.max(abs(diff(eigenvalues)))
+index_largest_gap <- which.max(abs(diff(sort(eigenvalues , decreasing = F))))
