@@ -1,6 +1,15 @@
 library(tidyverse)
 library(RSpectra)
 
+# utils -------------------------------------------------------------------
+
+silhouette_score <- function(clusters, dist) {
+  sil <- cluster::silhouette(clusters, dist)
+  mean(sil[, 3])
+}
+
+# analysis ----------------------------------------------------------------
+
 X <- scan("data/X.csv", sep = ",")
 X <- matrix(X, ncol = 2, byrow = TRUE)
 Y <- scan("data/y_true.csv", sep = ",")
@@ -8,13 +17,17 @@ Y <- matrix(Y, ncol = 1)
 
 # visualizing true clusters
 df <- as_tibble(cbind(X, Y), .name_repair = "unique") %>% 
-    set_names(c("x1", "x2", "clusters_true")) %>% 
-    mutate(clusters_true = as.integer(clusters_true))
+  set_names(c("x1", "x2", "clusters_true")) %>% 
+  mutate(clusters_true = as.integer(clusters_true))
 
 ggplot(df, aes(x1, x2)) +
-    geom_point(aes(color = factor(clusters_true)), show.legend = FALSE, size = 3) +
-    scale_color_viridis_d() +
-    labs(x = NULL, y = NULL, title = "Ground truth simulated data : 7 clusters")
+  geom_point(aes(color = factor(clusters_true)), show.legend = FALSE, size = 3) +
+  scale_color_viridis_d() +
+  labs(x = NULL, y = NULL, title = "Ground truth simulated data : 7 clusters")
+
+# internal validation
+silhouette_score(drop(Y), dist(X))
+
 
 k <- 11
 dist_mat <- dist(X) %>% as.matrix()
@@ -107,16 +120,4 @@ ggplot(elbow_df , aes(x=k , y= tot_within , color = "chartreuse"))+
 ## kmeans cluatering
 model_k7 <- kmeans(X , centers = 7)
 clust_k7 <- model_k7$cluster
-
-
-
-# internalValidation
-internalvalidation <- function(X){
-  sil_width <- map_dbl(2:10 , function(k){
-    mod <- pam( x=X , k=k)
-    mod$silinfo$avg.width
-  })
-  score <- max(sil_width)
-  return(score)
-}
 
