@@ -1,6 +1,7 @@
 library(tidyverse)
 library(RSpectra)
 library(ClusterR)
+library(speccalt)
 # utils -------------------------------------------------------------------
 
 silhouette_score <- function(clusters, dist) {
@@ -83,13 +84,17 @@ library(anocva)
 library(gridExtra)
 cluster_predict = anocva::spectralClustering(W, 7)
 
+# substituting anocva with speccalt package
+kern <- local.rbfdot(X)
+clust <- speccalt(kern, 7)
+
 g1 <- ggplot(df, aes(x1, x2)) +
   geom_point(aes(color = factor(clusters_true)), show.legend = FALSE, size = 3) +
   scale_color_viridis_d() +
   labs(x = NULL, y = NULL, title = "Ground truth simulated data : 7 clusters")
 
 g2 <- ggplot(df, aes(x1, x2)) +
-  geom_point(aes(color = factor(cluster_predict)), show.legend = FALSE, size = 3) +
+  geom_point(aes(color = factor(clust)), show.legend = FALSE, size = 3) +
   scale_color_viridis_d() +
   labs(x = NULL, y = NULL, title = "Spectral clustering result")
 
@@ -134,4 +139,6 @@ ggplot(elbow_df , aes(x=k , y= tot_within , color = "chartreuse"))+
 ## kmeans cluatering
 model_k7 <- kmeans(X , centers = 7)
 clust_k7 <- model_k7$cluster
+
+
 
