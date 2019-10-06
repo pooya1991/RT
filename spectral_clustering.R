@@ -88,6 +88,11 @@ cluster_predict = anocva::spectralClustering(W, 7)
 kern <- local.rbfdot(X)
 clust <- speccalt(kern, 7)
 
+# kernlab package
+# class data is matrix
+clust2 <- specc(X, centers=7, kernel = "rbfdot", kpar = "automatic")[1:length(Y)]
+
+
 g1 <- ggplot(df, aes(x1, x2)) +
   geom_point(aes(color = factor(clusters_true)), show.legend = FALSE, size = 3) +
   scale_color_viridis_d() +
@@ -96,9 +101,16 @@ g1 <- ggplot(df, aes(x1, x2)) +
 g2 <- ggplot(df, aes(x1, x2)) +
   geom_point(aes(color = factor(clust)), show.legend = FALSE, size = 3) +
   scale_color_viridis_d() +
-  labs(x = NULL, y = NULL, title = "Spectral clustering result")
+  labs(x = NULL, y = NULL, title = "Spectral clustering result by specclat package")
 
-grid.arrange(g2, g1, ncol=2)
+g3 <- ggplot(df, aes(x1, x2)) +
+  geom_point(aes(color = factor(clust2)), show.legend = FALSE, size = 3) +
+  scale_color_viridis_d() +
+  labs(x = NULL, y = NULL, title = "Spectral clustering result by kernlab package ")
+
+
+
+grid.arrange(g1 , g2 , g3, ncol=3)
 
 # cheking result by elbowmwthod , silhouette method============================================
 ## Clustering silhouette method
@@ -141,4 +153,5 @@ model_k7 <- kmeans(X , centers = 7)
 clust_k7 <- model_k7$cluster
 
 
+      
 
