@@ -1,6 +1,6 @@
 library(tidyverse)
 library(RSpectra)
-
+library(ClusterR)
 # utils -------------------------------------------------------------------
 
 silhouette_score <- function(clusters, dist) {
@@ -8,12 +8,22 @@ silhouette_score <- function(clusters, dist) {
   mean(sil[, 3])
 }
 
+
+externalValidation <- function(y_true , y_pred){
+  
+  v1 <- external_validation(y_true , y_pred, method = "rand_index" , summary_stats=F)
+  
+  return(v1)
+}
+
+
 # analysis ----------------------------------------------------------------
 
 X <- scan("data/X.csv", sep = ",")
 X <- matrix(X, ncol = 2, byrow = TRUE)
 Y <- scan("data/y_true.csv", sep = ",")
 Y <- matrix(Y, ncol = 1)
+Y <- Y+1
 
 # visualizing true clusters
 df <- as_tibble(cbind(X, Y), .name_repair = "unique") %>% 
@@ -27,6 +37,10 @@ ggplot(df, aes(x1, x2)) +
 
 # internal validation
 silhouette_score(drop(Y), dist(X))
+
+
+# externalvalidation
+externalValidation(Y , cluster_predict)
 
 
 k <- 11
