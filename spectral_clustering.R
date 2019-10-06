@@ -2,6 +2,8 @@ library(tidyverse)
 library(RSpectra)
 library(ClusterR)
 library(speccalt)
+library(caret)
+
 # utils -------------------------------------------------------------------
 
 silhouette_score <- function(clusters, dist) {
@@ -79,7 +81,7 @@ dev.off()
 index_largest_gap <- which.max(abs(diff(sort(eigenvalues , decreasing = F))))
 
 
-# Using function spectralclustering==================================
+# Using function spectralclustering ================================================
 library(anocva)
 library(gridExtra)
 cluster_predict = anocva::spectralClustering(W, 7)
@@ -112,46 +114,24 @@ g3 <- ggplot(df, aes(x1, x2)) +
 
 grid.arrange(g1 , g2 , g3, ncol=3)
 
-# cheking result by elbowmwthod , silhouette method============================================
-## Clustering silhouette method
-library(cluster)
-pam_k7 <- pam(X , k=7)
-pam_k7$silinfo$widths
+# confusion matrix =======================================================================
+library(caret)
+reference <- factor(Y)
+data <- factor(clust2)
+confusion_Matrix <- confusionMatrix(data, reference, positive = NULL,
+                dnn = c("Prediction", "Reference"), prevalence = NULL,
+                mode = "sens_spec")
 
-sil_plot <- silhouette(pam_k7)
-#plot(sil_plot)
-pam_k7$silinfo$avg.width
-
-# for different number of k
-sil_width <- map_dbl(2:10 , function(k){
-  mod <- pam( x=X , k=k)
-  mod$silinfo$avg.width
-})
-
-sil_df <- data.frame(k= 2:10 , sil_width = sil_width)
-#print(sil_df)
-
-ggplot(sil_df , aes(x=k , y= sil_width)) + geom_line()+
-  scale_x_continuous(breaks = 2:10)+ labs(title = "Silhouette score values vs Numbers of Clusters")
-
-## Generating differnt kmean with different k - elbow method============================================
-tot_within <- map_dbl(1:10 , function(k){
-  model <- kmeans ( x= X , centers = k)
-  model$tot.withinss
-  
-})
-elbow_df <- data.frame( k = 1:10 , tot_within =tot_within )
-
-print(elbow_df)
-
-ggplot(elbow_df , aes(x=k , y= tot_within , color = "chartreuse"))+
-  geom_line(show.legend = F , linetype = "dashed")+ geom_point(color="blue" , size=1)+
-  labs(title = "The Elbow Method showing the optimal k")
-
-## kmeans cluatering
-model_k7 <- kmeans(X , centers = 7)
-clust_k7 <- model_k7$cluster
-
-
-      
+cm <- confusion_Matrix$table
+n <- sum(cm)
+# number of classes
+nc <- nrow(cm)
+# number of correctly classified elements per cluster
+diag <- diag(cm)
+# number of elements per cluster
+nr <- colSums(cm)
+# number of predicted per cluster
+np <- rowSums(cm)
+# accuracy : fraction of elements that are classified correctly
+accuracy <- sum(diag)/n
 
