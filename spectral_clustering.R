@@ -11,14 +11,20 @@ silhouette_score <- function(clusters, dist) {
   mean(sil[, 3])
 }
 
-
-externalValidation <- function(y_true , y_pred){
+external_validation <- function(true_labels , clusters){
+  tbl <- table(clusters, true_labels)
   
-  v1 <- external_validation(y_true , y_pred, method = "rand_index" , summary_stats=F)
+  tp_plus_fp <- sum(choose(rowSums(tbl), 2))
+  tp_plus_fn <- sum(choose(colSums(tbl), 2))
+  tp <- sum(choose(drop(tbl), 2))
+  fp <- tp_plus_fp - tp
+  fn <- tp_plus_fn - tp
+  tn <- choose(sum(drop(tbl)), 2) - tp - fp - fn
+  rand_index <- (tp + tn) / (tp + fp + fn + tn)
   
-  return(v1)
+  purity <- sum(apply(tbl, 1, max)) / length(true_labels)
+  list(rand_index = rand_index, purity = purity)
 }
-
 
 # analysis ----------------------------------------------------------------
 
@@ -26,7 +32,6 @@ X <- scan("data/X.csv", sep = ",")
 X <- matrix(X, ncol = 2, byrow = TRUE)
 Y <- scan("data/y_true.csv", sep = ",")
 Y <- matrix(Y, ncol = 1)
-Y <- Y+1
 
 # visualizing true clusters
 df <- as_tibble(cbind(X, Y), .name_repair = "unique") %>% 
@@ -92,7 +97,7 @@ clust <- speccalt(kern, 7)
 
 # kernlab package
 # class data is matrix
-clust2 <- specc(X, centers=7, kernel = "rbfdot", kpar = "automatic")[1:length(Y)]
+clust2 <- kernlab::specc(X, centers=7, kernel = "rbfdot", kpar = "automatic")[1:length(Y)]
 
 
 g1 <- ggplot(df, aes(x1, x2)) +
@@ -118,7 +123,7 @@ grid.arrange(g1 , g2 , g3, ncol=3)
 library(caret)
 reference <- factor(Y)
 data <- factor(clust2)
-confusion_Matrix <- confusionMatrix(data, reference, positive = NULL,
+confusion_Matrix <- caret::confusionMatrix(data, reference, positive = NULL,
                 dnn = c("Prediction", "Reference"), prevalence = NULL,
                 mode = "sens_spec")
 
