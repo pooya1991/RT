@@ -1,8 +1,5 @@
 library(tidyverse)
 library(RSpectra)
-library(ClusterR)
-library(speccalt)
-library(caret)
 
 # utils -------------------------------------------------------------------
 
@@ -25,7 +22,9 @@ external_validation <- function(true_labels , clusters){
   adjusted_rand_index <- (tp - prod_comb) / (mean_comb - prod_comb)
   
   purity <- sum(apply(tbl, 1, max)) / length(true_labels)
+
   list(adjusted_rand_index = adjusted_rand_index, purity = purity)
+
 }
 
 # analysis ----------------------------------------------------------------
@@ -45,12 +44,30 @@ ggplot(df, aes(x1, x2)) +
   scale_color_viridis_d() +
   labs(x = NULL, y = NULL, title = "Ground truth simulated data : 7 clusters")
 
+
+# spectral clustering using packages --------------------------------------
+
+set.seed(942)
+obj_clust <- kernlab::specc(X, centers = 7, kernel = "rbfdot", kpar = "automatic")
+
+g1 <- ggplot(df, aes(x1, x2)) +
+  geom_point(aes(color = factor(clusters_true)), show.legend = FALSE, size = 3) +
+  scale_color_viridis_d() +
+  labs(x = NULL, y = NULL, title = "Ground truth clustering")
+
+g2 <- ggplot(df, aes(x1, x2)) +
+  geom_point(aes(color = factor(obj_clust)), show.legend = FALSE, size = 3) +
+  scale_color_viridis_d() +
+  labs(x = NULL, y = NULL, title = "Spectral clustering results")
+
+gridExtra::grid.arrange(g1 , g2, ncol = 2)
+
 # internal validation
-silhouette_score(drop(Y), dist(X))
+silhouette_score(obj_clust, dist(X))
 
+# external validation
+external_validation(drop(Y) , obj_clust)
 
-# externalvalidation
-external_validation (Y , clust2)
 
 
 k <- 11
@@ -88,6 +105,7 @@ dev.off()
 index_largest_gap <- which.max(abs(diff(sort(eigenvalues , decreasing = F))))
 
 
+
 # Using function spectralclustering ================================================
 library(anocva)
 library(gridExtra)
@@ -97,9 +115,6 @@ cluster_predict = anocva::spectralClustering(W, 7)
 kern <- local.rbfdot(X)
 clust <- speccalt(kern, 7)
 
-# kernlab package
-# class data is matrix
-clust2 <- kernlab::specc(X, centers=7, kernel = "rbfdot", kpar = "automatic")[1:length(Y)]
 
 
 g1 <- ggplot(df, aes(x1, x2)) +
@@ -130,3 +145,5 @@ confusion_Matrix <- caret::confusionMatrix(data, reference, positive = NULL,
                 mode = "sens_spec")
 
 
+=======
+>>>>>>> 7d3f3fd9225c034edb1e4fd6769624db3df29212
