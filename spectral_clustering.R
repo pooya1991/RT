@@ -96,11 +96,6 @@ getAffinity <- function(data , k){
   
   return(affinitymatirx)
 }
+getAffinity(X,k=3)
 
-
-
-
-
-
-
-
+#-------------------------------------------------------------------------
