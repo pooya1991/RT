@@ -122,16 +122,4 @@ confusion_Matrix <- confusionMatrix(data, reference, positive = NULL,
                 dnn = c("Prediction", "Reference"), prevalence = NULL,
                 mode = "sens_spec")
 
-cm <- confusion_Matrix$table
-n <- sum(cm)
-# number of classes
-nc <- nrow(cm)
-# number of correctly classified elements per cluster
-diag <- diag(cm)
-# number of elements per cluster
-nr <- colSums(cm)
-# number of predicted per cluster
-np <- rowSums(cm)
-# accuracy : fraction of elements that are classified correctly
-accuracy <- sum(diag)/n
 
