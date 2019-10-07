@@ -20,10 +20,12 @@ external_validation <- function(true_labels , clusters){
   fp <- tp_plus_fp - tp
   fn <- tp_plus_fn - tp
   tn <- choose(sum(drop(tbl)), 2) - tp - fp - fn
-  rand_index <- (tp + tn) / (tp + fp + fn + tn)
+  prod_comb <- (tp_plus_fp * tp_plus_fn) / choose(length(true_labels), 2)
+  mean_comb <- (tp_plus_fp + tp_plus_fn) / 2
+  adjusted_rand_index <- (tp - prod_comb) / (mean_comb - prod_comb)
   
   purity <- sum(apply(tbl, 1, max)) / length(true_labels)
-  list(rand_index = rand_index, purity = purity)
+  list(adjusted_rand_index = adjusted_rand_index, purity = purity)
 }
 
 # analysis ----------------------------------------------------------------
@@ -48,7 +50,7 @@ silhouette_score(drop(Y), dist(X))
 
 
 # externalvalidation
-externalValidation(Y , cluster_predict)
+external_validation (Y , clust2)
 
 
 k <- 11
