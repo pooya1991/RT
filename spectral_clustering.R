@@ -1,6 +1,5 @@
 library(tidyverse)
 library(RSpectra)
-library(ClusterR)
 
 # utils -------------------------------------------------------------------
 
@@ -51,10 +50,22 @@ silhouette_score(drop(Y), dist(X))
 set.seed(942)
 obj_clust <- kernlab::specc(X, centers = 7, kernel = "rbfdot", kpar = "automatic")
 
+g1 <- ggplot(df, aes(x1, x2)) +
+  geom_point(aes(color = factor(clusters_true)), show.legend = FALSE, size = 3) +
+  scale_color_viridis_d() +
+  labs(x = NULL, y = NULL, title = "Ground truth clustering")
+
+g2 <- ggplot(df, aes(x1, x2)) +
+  geom_point(aes(color = factor(obj_clust)), show.legend = FALSE, size = 3) +
+  scale_color_viridis_d() +
+  labs(x = NULL, y = NULL, title = "Spectral clustering results")
+
+gridExtra::grid.arrange(g1 , g2, ncol = 2)
+
 # internal validation
 silhouette_score(obj_clust, dist(X))
 
-# externalvalidation
+# external validation
 external_validation(drop(Y) , obj_clust)
 
 
@@ -91,58 +102,3 @@ dev.off()
 
 # recommended optimal number of clusters 
 index_largest_gap <- which.max(abs(diff(sort(eigenvalues , decreasing = F))))
-
-
-# Using function spectralclustering ================================================
-library(anocva)
-library(gridExtra)
-cluster_predict = anocva::spectralClustering(W, 7)
-
-# substituting anocva with speccalt package
-kern <- local.rbfdot(X)
-clust <- speccalt(kern, 7)
-
-# kernlab package
-# class data is matrix
-
-
-g1 <- ggplot(df, aes(x1, x2)) +
-  geom_point(aes(color = factor(clusters_true)), show.legend = FALSE, size = 3) +
-  scale_color_viridis_d() +
-  labs(x = NULL, y = NULL, title = "Ground truth simulated data : 7 clusters")
-
-g2 <- ggplot(df, aes(x1, x2)) +
-  geom_point(aes(color = factor(clust)), show.legend = FALSE, size = 3) +
-  scale_color_viridis_d() +
-  labs(x = NULL, y = NULL, title = "Spectral clustering result by specclat package")
-
-g3 <- ggplot(df, aes(x1, x2)) +
-  geom_point(aes(color = factor(clust2)), show.legend = FALSE, size = 3) +
-  scale_color_viridis_d() +
-  labs(x = NULL, y = NULL, title = "Spectral clustering result by kernlab package ")
-
-
-
-grid.arrange(g1 , g2 , g3, ncol=3)
-
-# confusion matrix =======================================================================
-library(caret)
-reference <- factor(Y)
-data <- factor(clust2)
-confusion_Matrix <- caret::confusionMatrix(data, reference, positive = NULL,
-                dnn = c("Prediction", "Reference"), prevalence = NULL,
-                mode = "sens_spec")
-
-cm <- confusion_Matrix$table
-n <- sum(cm)
-# number of classes
-nc <- nrow(cm)
-# number of correctly classified elements per cluster
-diag <- diag(cm)
-# number of elements per cluster
-nr <- colSums(cm)
-# number of predicted per cluster
-np <- rowSums(cm)
-# accuracy : fraction of elements that are classified correctly
-accuracy <- sum(diag)/n
-
