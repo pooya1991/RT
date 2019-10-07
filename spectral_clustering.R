@@ -27,6 +27,19 @@ external_validation <- function(true_labels , clusters){
 
 }
 
+compute_affinity_mat <- function(X , k){
+  dist_mat <- dist(X) %>% as.matrix()
+  kth_neighbor <- apply(dist_mat, 2, function(x) sort(x)[k])
+  local_scale <- tcrossprod(kth_neighbor)
+  
+  # computing the weighted adjacency matrix
+  W <- -dist_mat^2 / local_scale
+  W[is.nan(W)] <- 0
+  W <- exp(W)
+  diag(W) <- 0
+  W
+}
+
 # analysis ----------------------------------------------------------------
 
 X <- scan("data/X.csv", sep = ",")
@@ -70,32 +83,6 @@ external_validation(drop(Y) , obj_clust)
 
 # self tuned clustering ---------------------------------------------------
 
-size <- dim(dist_mat)[1]
 
-getAffinity <- function(data , k){
-  
-  dist_mat <- dist(data) %>% as.matrix()
-  
-  knn_mat <- matrix(0, nrow = size , ncol = size)
-  neighbor_index <- matrix(0, nrow = size , ncol = k)
-  for (i in 1:size){
-    neighbor_index[i,] <- order(dist_mat[i,])[2:(k + 1)]
-    knn_mat[i,][neighbor_index] <- 1 
-  }
-  
-  local_scale <- c()
-  for (i in 1:size){
-    local_scale [i] <- dist_mat[i , neighbor_index[ i,k]]
-  }
-  
-  # calculating sigma i * sigma j
-  sigma <- local_scale %*% t(local_scale)
-  # Affinity matrix by considering local_scale ( 1th nearest neighbor)
-  affinitymatirx <- exp(-(dist_mat*dist_mat)/sigma)
-  diag(affinitymatirx) <- 0
-  
-  return(affinitymatirx)
-}
-getAffinity(X,k=3)
 
 #-------------------------------------------------------------------------
