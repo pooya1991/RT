@@ -68,82 +68,39 @@ silhouette_score(obj_clust, dist(X))
 # external validation
 external_validation(drop(Y) , obj_clust)
 
+# self tuned clustering ---------------------------------------------------
 
+size <- dim(dist_mat)[1]
 
-k <- 11
-dist_mat <- dist(X) %>% as.matrix()
-kth_neighbor <- apply(dist_mat, 2, function(x) sort(x)[k])
-local_scale <- tcrossprod(kth_neighbor)
-
-# computing the weighted adjacency matrix
-W <- -dist_mat^2 / local_scale
-W[is.nan(W)] <- 0
-W <- exp(W)
-diag(W) <- 0
-
-# computing the degree matrix
-eps <- .Machine$double.eps
-degs <- colSums(W)
-degs[degs == 0] <- eps
-D <- diag(1 / sqrt(degs))
-
-# computing the normalized laplacian matrix
-n = nrow(D)
-L <- diag(n) - D %*% W %*% D
-
-# eigenvalues with largest magnitude 
-##res = eigs_sym(L , k=k, which = "LM") !!!!
-eigenvalues <- eigen(L)$values
-eigenvectors <- eigen(L)$vectors
-
-pdf("largest eigenvalues of matrix.pdf")
-plot( 1:length(eigenvalues) , sort(eigenvalues , decreasing = F) , main = "largest eigenvalues of matrix" , type="p",
-      col="blue" ,pch = 16 , bg="red" )
-dev.off()
-
-# recommended optimal number of clusters 
-index_largest_gap <- which.max(abs(diff(sort(eigenvalues , decreasing = F))))
+getAffinity <- function(data , k){
+  
+  dist_mat <- dist(data) %>% as.matrix()
+  
+  knn_mat <- matrix(0, nrow = size , ncol = size)
+  neighbor_index <- matrix(0, nrow = size , ncol = k)
+  for (i in 1:size){
+    neighbor_index[i,] <- order(dist_mat[i,])[2:(k + 1)]
+    knn_mat[i,][neighbor_index] <- 1 
+  }
+  
+  local_scale <- c()
+  for (i in 1:size){
+    local_scale [i] <- dist_mat[i , neighbor_index[ i,k]]
+  }
+  
+  # calculating sigma i * sigma j
+  sigma <- local_scale %*% t(local_scale)
+  # Affinity matrix by considering local_scale ( 1th nearest neighbor)
+  affinitymatirx <- exp(-(dist_mat*dist_mat)/sigma)
+  diag(affinitymatirx) <- 0
+  
+  return(affinitymatirx)
+}
 
 
 
-# Using function spectralclustering ================================================
-library(anocva)
-library(gridExtra)
-cluster_predict = anocva::spectralClustering(W, 7)
-
-# substituting anocva with speccalt package
-kern <- local.rbfdot(X)
-clust <- speccalt(kern, 7)
 
 
 
-g1 <- ggplot(df, aes(x1, x2)) +
-  geom_point(aes(color = factor(clusters_true)), show.legend = FALSE, size = 3) +
-  scale_color_viridis_d() +
-  labs(x = NULL, y = NULL, title = "Ground truth simulated data : 7 clusters")
-
-g2 <- ggplot(df, aes(x1, x2)) +
-  geom_point(aes(color = factor(clust)), show.legend = FALSE, size = 3) +
-  scale_color_viridis_d() +
-  labs(x = NULL, y = NULL, title = "Spectral clustering result by specclat package")
-
-g3 <- ggplot(df, aes(x1, x2)) +
-  geom_point(aes(color = factor(clust2)), show.legend = FALSE, size = 3) +
-  scale_color_viridis_d() +
-  labs(x = NULL, y = NULL, title = "Spectral clustering result by kernlab package ")
 
 
-
-grid.arrange(g1 , g2 , g3, ncol=3)
-
-# confusion matrix =======================================================================
-library(caret)
-reference <- factor(Y)
-data <- factor(clust2)
-confusion_Matrix <- caret::confusionMatrix(data, reference, positive = NULL,
-                dnn = c("Prediction", "Reference"), prevalence = NULL,
-                mode = "sens_spec")
-
-
-=======
->>>>>>> 7d3f3fd9225c034edb1e4fd6769624db3df29212
