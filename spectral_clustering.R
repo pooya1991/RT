@@ -1,8 +1,6 @@
 library(tidyverse)
 library(RSpectra)
 library(ClusterR)
-library(speccalt)
-library(caret)
 
 # utils -------------------------------------------------------------------
 
@@ -20,10 +18,12 @@ external_validation <- function(true_labels , clusters){
   fp <- tp_plus_fp - tp
   fn <- tp_plus_fn - tp
   tn <- choose(sum(drop(tbl)), 2) - tp - fp - fn
-  rand_index <- (tp + tn) / (tp + fp + fn + tn)
+  prod_comb <- (tp_plus_fp * tp_plus_fn) / choose(length(true_labels), 2)
+  mean_comb <- (tp_plus_fp + tp_plus_fn) / 2
+  adjusted_rand_index <- (tp - prod_comb) / (mean_comb - prod_comb)
   
   purity <- sum(apply(tbl, 1, max)) / length(true_labels)
-  list(rand_index = rand_index, purity = purity)
+  list(rand_index = adjusted_rand_index, purity = purity)
 }
 
 # analysis ----------------------------------------------------------------
@@ -46,9 +46,16 @@ ggplot(df, aes(x1, x2)) +
 # internal validation
 silhouette_score(drop(Y), dist(X))
 
+# spectral clustering using packages --------------------------------------
+
+set.seed(942)
+obj_clust <- kernlab::specc(X, centers = 7, kernel = "rbfdot", kpar = "automatic")
+
+# internal validation
+silhouette_score(obj_clust, dist(X))
 
 # externalvalidation
-externalValidation(Y , cluster_predict)
+external_validation(drop(Y) , obj_clust)
 
 
 k <- 11
@@ -97,7 +104,6 @@ clust <- speccalt(kern, 7)
 
 # kernlab package
 # class data is matrix
-clust2 <- kernlab::specc(X, centers=7, kernel = "rbfdot", kpar = "automatic")[1:length(Y)]
 
 
 g1 <- ggplot(df, aes(x1, x2)) +
