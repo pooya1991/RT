@@ -83,6 +83,6 @@ external_validation(drop(Y) , obj_clust)
 
 # self tuned clustering ---------------------------------------------------
 
-
+W <- compute_affinity_mat(X, 11)
 
 #-------------------------------------------------------------------------
