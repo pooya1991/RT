@@ -40,7 +40,7 @@ compute_affinity_mat <- function(X , k){
   W
 }
 
-AF_MAT <- compute_affinity_mat(X,k=10)
+
 
 eigen_value <- function(W , n_eigenval){
   deg <- colSums(W!= 0)
@@ -60,7 +60,7 @@ eigen_value <- function(W , n_eigenval){
   ndx
 }
 
-eigen_value(AF_MAT , n_eigenval = 5)
+
 # analysis ----------------------------------------------------------------
 
 X <- scan("data/X.csv", sep = ",")
@@ -104,3 +104,6 @@ external_validation(drop(Y) , obj_clust)
 
 # self tuned clustering ---------------------------------------------------
 
+
+W <- compute_affinity_mat(X, 11)
+LAV <- eigen_value(AF_MAT , n_eigenval = 5)
