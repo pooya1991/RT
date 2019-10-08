@@ -49,8 +49,8 @@ eigen_value <- function(W , n_eigenval){
   n = nrow(D)
   L <- diag(n) - D %*% W %*% D
   # eigenvalues with largest magnitude 
-  eigenvalues <- eigen(N_L)$values
-  eigenvectors <- eigen(N_L)$vectors
+  eigenvalues <- eigen(L)$values
+  eigenvectors <- eigen(L)$vectors
   plot(1:length(eigenvalues) ,  sort(eigenvalues , decreasing = F), main = "largest eigenvalues of matrix" , type="p" , col="blue" ,
        pch = 21 , bg="blue" )
   largest_gap <- abs(diff(eigenvalues))
@@ -103,7 +103,5 @@ silhouette_score(obj_clust, dist(X))
 external_validation(drop(Y) , obj_clust)
 
 # self tuned clustering ---------------------------------------------------
-
-
 W <- compute_affinity_mat(X, 11)
 LAV <- eigen_value(AF_MAT , n_eigenval = 5)
