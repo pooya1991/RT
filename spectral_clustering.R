@@ -52,11 +52,10 @@ eigen_value <- function(W , n_eigenval){
   eigenvalues <- eigen(L)$values
   eigenvectors <- eigen(L)$vectors
   plot(1:length(eigenvalues) ,  sort(eigenvalues , decreasing = F), main = "largest eigenvalues of matrix" , type="p" , col="blue" ,
-       pch = 21 , bg="blue" )
-  largest_gap <- abs(diff(eigenvalues))
-  N <- n_eigenval
-  ndx <- order(largest_gap, decreasing = T)[1:N]
-  largest_gap[ndx]
+       pch = 10 , bg="blue" , cex=0.5 )
+  gaps <- abs(diff(eigenvalues))
+  ndx <- order(gaps, decreasing = T)[1:n_eigenval]
+  gaps[ndx]
   ndx
 }
 
@@ -104,4 +103,4 @@ external_validation(drop(Y) , obj_clust)
 
 # self tuned clustering ---------------------------------------------------
 W <- compute_affinity_mat(X, 11)
-LAV <- eigen_value(AF_MAT , n_eigenval = 5)
+LAV <- eigen_value(W , n_eigenval = 5)
