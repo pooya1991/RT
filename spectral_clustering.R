@@ -43,16 +43,15 @@ compute_affinity_mat <- function(X , k){
 
 
 eigen_value <- function(W , n_eigenval){
-  deg <- colSums(W!= 0)
-  D <- diag(1 / sqrt(deg))
-  # Normalized laplacian matrix
-  n = nrow(D)
-  L <- diag(n) - D %*% W %*% D
-  # eigenvalues with largest magnitude 
+  eps <- .Machine$double.eps
+  degs <- colSums(W)
+  D <- diag(degs)
+  L <- D - W
+  degs[degs == 0] <- eps
+  diag(D) <- 1 / (degs ^ 0.5)
+  L <- D %*% L %*% D
   eigenvalues <- eigen(L)$values
   eigenvectors <- eigen(L)$vectors
-  plot(1:length(eigenvalues) ,  sort(eigenvalues , decreasing = F), main = "largest eigenvalues of matrix" , type="p" , col="blue" ,
-       pch = 10 , bg="blue" , cex=0.5 )
   gaps <- abs(diff(eigenvalues))
   ndx <- order(gaps, decreasing = T)[1:n_eigenval]
   gaps[ndx]
