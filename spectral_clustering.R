@@ -40,6 +40,27 @@ compute_affinity_mat <- function(X , k){
   W
 }
 
+AF_MAT <- compute_affinity_mat(X,k=10)
+
+eigen_value <- function(W , n_eigenval){
+  deg <- colSums(W!= 0)
+  D <- diag(1 / sqrt(deg))
+  # Normalized laplacian matrix
+  n = nrow(D)
+  L <- diag(n) - D %*% W %*% D
+  # eigenvalues with largest magnitude 
+  eigenvalues <- eigen(N_L)$values
+  eigenvectors <- eigen(N_L)$vectors
+  plot(1:length(eigenvalues) ,  sort(eigenvalues , decreasing = F), main = "largest eigenvalues of matrix" , type="p" , col="blue" ,
+       pch = 21 , bg="blue" )
+  largest_gap <- abs(diff(eigenvalues))
+  N <- n_eigenval
+  ndx <- order(largest_gap, decreasing = T)[1:N]
+  largest_gap[ndx]
+  ndx
+}
+
+eigen_value(AF_MAT , n_eigenval = 5)
 # analysis ----------------------------------------------------------------
 
 X <- scan("data/X.csv", sep = ",")
@@ -83,6 +104,3 @@ external_validation(drop(Y) , obj_clust)
 
 # self tuned clustering ---------------------------------------------------
 
-
-
-#-------------------------------------------------------------------------
