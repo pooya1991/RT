@@ -222,3 +222,10 @@ eigenvectors <- res$vectors
 
 # in this step people use kmeans with a MANUALLY chosen number of clusters, but I am following the
 # algorithm of paper then there is another way to determine the optimum number of clusters
+
+
+
+library(knitr)
+library(kableExtra)
+valid_centered_wide[1:5 , 1:5]
+summary(valid_centered_wide) %>% kable() %>% kable_styling()

@@ -29,7 +29,7 @@ external_validation <- function(true_labels , clusters){
 
 compute_affinity_mat <- function(X , k){
   dist_mat <- dist(X) %>% as.matrix()
-  kth_neighbor <- apply(dist_mat, 2, function(x) sort(x)[k])
+  kth_neighbor <- apply(dist_mat, 1, function(x) sort(x)[k])
   local_scale <- tcrossprod(kth_neighbor)
   
   # computing the weighted adjacency matrix
@@ -43,13 +43,6 @@ compute_affinity_mat <- function(X , k){
 
 
 eigen_value <- function(W , n_eigenval){
-
-    deg <- colSums(W!= 0)
-  D <- diag(1 / sqrt(deg))
-  # Normalized laplacian matrix
-  n = nrow(D)
-  L <- diag(n) - D %*% W %*% D
-  # eigenvalues with largest magnitude 
 
   eps <- .Machine$double.eps
   degs <- colSums(W)
