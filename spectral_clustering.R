@@ -52,11 +52,12 @@ eigen_value <- function(W , n_eigenval){
   diag(D) <- 1 / (degs ^ 0.5)
   L <- D %*% L %*% D
   eigenvalues <- eigen(L)$values
-  eigenvectors <- eigen(L)$vectors
-  gaps <- abs(diff(eigenvalues))
-  ndx <- order(gaps, decreasing = T)[1:n_eigenval]
-  gaps[ndx]
-  ndx
+  eigenvalues <- sort(eigenvalues , decreasing = F)
+  #eigenvectors <- eigen(L)$vectors
+  gaps <- diff(eigenvalues)
+  ndx <- order(gaps, decreasing = F)
+  ndx <- tail(ndx ,n_eigenval )
+  list(ndx = ndx , Laplacian = L , eigenvalues = eigenvalues)
 }
 
 
@@ -102,5 +103,5 @@ silhouette_score(obj_clust, dist(X))
 external_validation(drop(Y) , obj_clust)
 
 # self tuned clustering ---------------------------------------------------
-W <- compute_affinity_mat(X, 11)
+W <- compute_affinity_mat(X, 8)
 LAV <- eigen_value(W , n_eigenval = 5)
