@@ -43,7 +43,7 @@ compute_affinity_mat <- function(X , k){
 
 
 eigen_value <- function(W , n_eigenval){
-  deg <- colSums(W!= 0)
+    deg <- colSums(W!= 0)
   D <- diag(1 / sqrt(deg))
   # Normalized laplacian matrix
   n = nrow(D)
