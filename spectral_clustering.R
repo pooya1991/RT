@@ -40,10 +40,7 @@ compute_affinity_mat <- function(X , k){
   W
 }
 
-
-
-eigen_value <- function(W , n_eigenval){
-
+affinity_to_eigen <- function(W){
   eps <- .Machine$double.eps
   degs <- colSums(W)
   D <- diag(degs)
@@ -51,15 +48,16 @@ eigen_value <- function(W , n_eigenval){
   degs[degs == 0] <- eps
   diag(D) <- 1 / (degs ^ 0.5)
   L <- D %*% L %*% D
-  eigenvalues <- eigen(L)$values
-  eigenvalues <- sort(eigenvalues , decreasing = F)
-  #eigenvectors <- eigen(L)$vectors
-  gaps <- diff(eigenvalues)
-  ndx <- order(gaps, decreasing = F)
-  ndx <- tail(ndx ,n_eigenval )
-  list(ndx = ndx , Laplacian = L , eigenvalues = eigenvalues)
+  eigen(L)
 }
 
+find_n_clusts <- function(eig_obj, n = 5) {
+  eigenvalues <- sort(eig_obj$values)
+  #eigenvectors <- eigen(L)$vectors
+  gaps <- diff(eigenvalues)
+  idx <- order(gaps, decreasing = TRUE)
+  idx[1:n]
+}
 
 # analysis ----------------------------------------------------------------
 
@@ -103,5 +101,6 @@ silhouette_score(obj_clust, dist(X))
 external_validation(drop(Y) , obj_clust)
 
 # self tuned clustering ---------------------------------------------------
-W <- compute_affinity_mat(X, 8)
-LAV <- eigen_value(W , n_eigenval = 5)
+W <- compute_affinity_mat(X, 11)
+eig_obj <- affinity_to_eigen(W)
+find_n_clusts(eig_obj, n = 4)
