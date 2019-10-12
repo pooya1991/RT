@@ -8,7 +8,7 @@ silhouette_score <- function(clusters, dist) {
   mean(sil[, 3])
 }
 
-external_validation <- function(true_labels , clusters){
+external_validation <- function(true_labels , clusters) {
   tbl <- table(clusters, true_labels)
   
   tp_plus_fp <- sum(choose(rowSums(tbl), 2))
@@ -22,31 +22,34 @@ external_validation <- function(true_labels , clusters){
   adjusted_rand_index <- (tp - prod_comb) / (mean_comb - prod_comb)
   
   purity <- sum(apply(tbl, 1, max)) / length(true_labels)
-
+  
   list(adjusted_rand_index = adjusted_rand_index, purity = purity)
-
+  
 }
 
-compute_affinity_mat <- function(X , k){
-  dist_mat <- dist(X) %>% as.matrix()
-  kth_neighbor <- apply(dist_mat, 2, function(x) sort(x)[k])
-  local_scale <- tcrossprod(kth_neighbor)
+compute_affinity_mat <- function(dist_mat, sigma = 1, local_scale = FALSE, k = 7) {
+  sigma_sqr <- sigma^2
+  
+  if (local_scale) {
+    kth_neighbor <- apply(dist_mat, 2, function(x) sort(x)[k])
+    sigma_sqr <- tcrossprod(kth_neighbor)
+  }
   
   # computing the weighted adjacency matrix
-  W <- -dist_mat^2 / local_scale
+  W <- -dist_mat^2 / sigma_sqr
   W[is.nan(W)] <- 0
   W <- exp(W)
   diag(W) <- 0
   W
 }
 
-affinity_to_eigen <- function(W){
+affinity_to_eigen <- function(W) {
   eps <- .Machine$double.eps
   degs <- colSums(W)
   D <- diag(degs)
   L <- D - W
   degs[degs == 0] <- eps
-  diag(D) <- 1 / (degs ^ 0.5)
+  diag(D) <- 1 / sqrt(degs)
   L <- D %*% L %*% D
   eigen(L)
 }

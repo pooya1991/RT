@@ -54,6 +54,10 @@ simil_mat[near(abs(simil_mat), 1)] <- 0
 diag(simil_mat) <- 1
 simil_mat[is.na(simil_mat)] <- 0
 
+W <- compute_affinity_mat(1 - simil_mat, local_scale = TRUE)
+obj_eig <- affinity_to_eigen(W)
+find_n_clusts(obj_eig)
+
 eigen_vecs <- simil_to_eigen(simil_mat, n = 10, sigma = 3)
 set.seed(1215)
 res_clust <- e1071::cmeans(eigen_vecs, centers = n_clusts, m = 1.15)
