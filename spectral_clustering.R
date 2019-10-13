@@ -116,3 +116,7 @@ external_validation(drop(Y) , obj_clust)
 W <- compute_affinity_mat(X, 11)
 eig_obj <- affinity_to_eigen(W)
 find_n_clusts(eig_obj, n = 4)
+
+
+
+
