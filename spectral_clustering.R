@@ -54,6 +54,15 @@ affinity_to_eigen <- function(W) {
   eigen(L)
 }
 
+affinity_to_eigen2 <- function(W) {
+  eps <- .Machine$double.eps
+  degs <- colSums(W)
+  D <- diag(degs)
+  degs[degs == 0] <- eps
+  diag(D) <- 1 / sqrt(degs)
+  eigen(D %*% W %*% D)
+}
+
 find_n_clusts <- function(eig_obj, n = 5) {
   eigenvalues <- sort(eig_obj$values)
   #eigenvectors <- eigen(L)$vectors
