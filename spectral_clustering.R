@@ -1,6 +1,7 @@
 library(tidyverse)
 library(RSpectra)
 
+
 # utils -------------------------------------------------------------------
 
 silhouette_score <- function(clusters, dist) {
@@ -71,6 +72,7 @@ find_n_clusts <- function(eig_obj, n = 5) {
   idx[1:n]
 }
 
+
 # analysis ----------------------------------------------------------------
 
 X <- scan("data/X.csv", sep = ",")
@@ -115,6 +117,10 @@ external_validation(drop(Y) , obj_clust)
 # self tuned clustering ---------------------------------------------------
 W <- compute_affinity_mat(X, 11)
 eig_obj <- affinity_to_eigen(W)
+# eigenvalues are sorted in ascending order
+values <- srot(eig_obj$values , decreasing = FALSE)
+vectors <- eig_obj$vectors
+
 find_n_clusts(eig_obj, n = 4)
 
 
