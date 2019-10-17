@@ -34,7 +34,7 @@ affinity_to_eigen <- function(W) {
 values <- srot(eig_obj$values , decreasing = FALSE)
 vectors <- eig_obj$vectors
 
-# n= length(cluster_label)
+n= length(cluster_label)
 refomat_result <- function(cluster_label , n){
     zip_data <- data.frame(cluster_label = cluster_label , number=1:n )
     zip_data[order(zip_data$cluster_label),]
