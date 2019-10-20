@@ -20,7 +20,7 @@ self_tuning_spectral_clustering <- function(affinity, get_rotation_matrix, min_n
         k <- k+1
         re [k] <- c(cost , x%*%r)
         cat(" number of cluster :", c , "\t", "cost :" , cost)
-        
+        ### help !!!
         
     }}
      
