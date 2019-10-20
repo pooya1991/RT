@@ -16,7 +16,7 @@ compute_affinity_mat <- function(dist_mat, sigma = 1, local_scale = FALSE, k = 7
     W
 }
 
-get_max_min <- function(values , min_n_cluster , max_n_cluster){
+get_min_max <- function(values , min_n_cluster , max_n_cluster){
     args <- list(min_n_cluster, max_n_cluster)
     if (is.null(args[['min_n_cluster']])) {
         min_n_cluster <- 2
@@ -45,7 +45,7 @@ affinity_to_eigen2 <- function(W) {
 }
 
 
-n= length(cluster_label)
+
 refomat_result <- function(cluster_label , n){
     zip_data <- data.frame(cluster_label = cluster_label , number=1:n )
     zip_data[order(zip_data$cluster_label),]
