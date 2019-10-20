@@ -122,5 +122,5 @@ get_rotation_matrix <- function(X,C){
     opt <- optim(theta_list_init, cost_and_grad, method = "CG")
     
 
-    list (... , Reduce("%*%",generate_U_list(ij_list, ... , C) , diag(C))#### need to be checked
+    list (opt$value , Reduce("%*%",generate_U_list(ij_list, opt$par , C) , diag(C)))
 }

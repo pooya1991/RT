@@ -1,5 +1,20 @@
 #stsc_ulti.py
 
+compute_affinity_mat <- function(dist_mat, sigma = 1, local_scale = FALSE, k = 7) {
+    sigma_sqr <- sigma^2
+    
+    if (local_scale) {
+        kth_neighbor <- apply(dist_mat, 2, function(x) sort(x)[k])
+        sigma_sqr <- tcrossprod(kth_neighbor)
+    }
+    
+    # computing the weighted adjacency matrix
+    W <- -dist_mat^2 / sigma_sqr
+    W[is.nan(W)] <- 0
+    W <- exp(W)
+    diag(W) <- 0
+    W
+}
 
 get_max_min <- function(values , min_n_cluster , max_n_cluster){
     args <- list(min_n_cluster, max_n_cluster)
@@ -19,20 +34,16 @@ get_max_min <- function(values , min_n_cluster , max_n_cluster){
 }
 
 
-affinity_to_eigen <- function(W) {
-    eps <- .Machine$double.eps
-    degs <- colSums(W)
-    D <- diag(degs)
-    L <- D - W
-    degs[degs == 0] <- eps
-    diag(D) <- 1 / sqrt(degs)
-    L <- D %*% L %*% D
-    eigen(L)
+affinity_to_eigen2 <- function(W) {
+  eps <- .Machine$double.eps
+  degs <- colSums(W)
+  D <- diag(degs)
+  degs[degs == 0] <- eps
+  diag(D) <- 1 / sqrt(degs)
+  L <- D %*% W %*% D
+  eigen(L)
 }
 
-# eigenvalues are sorted in ascending order
-values <- srot(eig_obj$values , decreasing = FALSE)
-vectors <- eig_obj$vectors
 
 n= length(cluster_label)
 refomat_result <- function(cluster_label , n){
