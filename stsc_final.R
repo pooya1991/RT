@@ -18,10 +18,12 @@ self_tuning_spectral_clustering <- function(affinity, get_rotation_matrix, min_n
         cost <-  get_rotation_matrix(x, c)[1]
         r <-  get_rotation_matrix(x,c)[2]
         k <- k+1
-        re [k] <- c(cost , x%*%r)
+        re [[k]] <- list(cost , x%*%r)
         cat(" number of cluster :", c , "\t", "cost :" , cost)
-        ### help !!!
-        
+       
+    COST <- re[order(sapply(re,'[[',1))][[1]][[1]]
+    Z <- re[order(sapply(re,'[[',1))][[1]][[2]]
+    return(reformat_result(apply( Z, 1, which.max), dim(Z)[1]))
     }}
      
 self_tuning_spectral_clustering_np <- function(affinity, min_n_cluster=NULL, max_n_cluster=NULL){

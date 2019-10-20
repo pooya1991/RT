@@ -102,9 +102,11 @@ get_rotation_matrix <- function(X,C){
         V_list <- generate_V_list(ij_list, theta_list ,C)
         R <- Reduce( "%*%" ,U_list , diag(C) )
         Z <- X %*% R
-        mi <- apply( Z, 2, which.max)
+        # get the index of maximum element in each row
+        mi <- apply( Z, 1, which.max)
+        # i need the values of elements of maximum
         for (i in 1:length(mi)){
-            M[i] <- aa[i ,mi[i]]}
+            M[i] <- Z[i ,mi[i]]}
         cost <- sum((Z/M)^2)
         grad <- vector(mode='numeric' , length=K)
         for (k in 1:K){
