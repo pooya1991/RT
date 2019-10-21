@@ -82,11 +82,11 @@ get_A_matrix <- function(X , U_list , V_list , k , K){
     X %*% Ul %*% V %*% Ur
 }  
 
-get_rotation_matrix <- function(X,C){
+get_rotation_matrix <- function(x,c){
     k <- 0
     ij_list = list()
-    for (i in 1:length(C)){
-        for ( j in 1:length(C)){
+    for (i in 1:length(c)){
+        for ( j in 1:length(c)){
             if (i<j){
                 k <- k+1
                 ij_list[[k]] <- c(i , j)
@@ -98,10 +98,10 @@ get_rotation_matrix <- function(X,C){
     K <- nrow(ij_list)
     
     cost_and_grad <- function(theta_list){
-        U_list <- generate_U_list(ij_list, theta_list, C)
-        V_list <- generate_V_list(ij_list, theta_list ,C)
-        R <- Reduce( "%*%" ,U_list , diag(C) )
-        Z <- X %*% R
+        U_list <- generate_U_list(ij_list, theta_list, c)
+        V_list <- generate_V_list(ij_list, theta_list, c)
+        R <- Reduce( "%*%" ,U_list , diag(c) )
+        Z <- x %*% R
         # get the index of maximum element in each row
         mi <- apply( Z, 1, which.max)
         # i need the values of elements of maximum
@@ -110,7 +110,7 @@ get_rotation_matrix <- function(X,C){
         cost <- sum((Z/M)^2)
         grad <- vector(mode='numeric' , length=K)
         for (k in 1:K){
-            A <- get_A_matrix(X, U_list, V_list, k, K)
+            A <- get_A_matrix(x, U_list, V_list, k, K)
             for (i in length(mi)){
                 MA[i] <- A[i,mi[i]]}
             tmp <-  (Z / (M^2)) * A
@@ -120,9 +120,9 @@ get_rotation_matrix <- function(X,C){
 
         list(cost, grad)
     }
-    theta_list_init <- vector(mode = "numeric" , length = C*(C-1)/2)
+    theta_list_init <- vector(mode = "numeric" , length = c*(c-1)/2)
     opt <- optim(theta_list_init, cost_and_grad, method = "CG")
     
 
-    list (opt$value , Reduce("%*%",generate_U_list(ij_list, opt$par , C) , diag(C)))
+    list (opt$value , Reduce("%*%",generate_U_list(ij_list, opt$par , c) , diag(c)))
 }

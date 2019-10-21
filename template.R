@@ -11,6 +11,8 @@ for (i in 1:5){
 }
 x <- do.call(cbind, x)
 x <- x+matrix(rnorm(100*20), ncol=20)*0.01
+distx <- as.matrix(dist(x))
 
-affinity_matrix <- compute_affinity_mat (x)
-self_tuning_spectral_clustering(affinity_matrix)
+#affinity_matrix
+W <- compute_affinity_mat(distx)
+self_tuning_spectral_clustering(W)

@@ -49,7 +49,7 @@ affinity_to_eigen2 <- function(W) {
 refomat_result <- function(cluster_label , n){
     zip_data <- data.frame(cluster_label = cluster_label , number=1:n )
     zip_data[order(zip_data$cluster_label),]
-    repeated <- as.numeric(names(table(cluster_label)[table(cluster_label) > 1]))
+    repeated <- as.numeric(names(table(cluster_label)[table(cluster_label) >= 1]))
     grouped_idx = list()
     for ( i in 1:length(repeated)){
         grouped_idx[[i]] <- which(zip_data$cluster_label== repeated[i])
