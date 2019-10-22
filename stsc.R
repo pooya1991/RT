@@ -6,13 +6,13 @@ Given_rotation <- function( i, j , theta , dimension){
     s <- sin(theta)
     g[i,i] <- c
     g[j,j] <- c
-    if(i >j){
+    if(i > j){
         g[i,j] <- s
-        g[j,i] <- -s
-    }else if (i<j){
+        g[j,i] <- -s}
+    else if (i<j){
         g[i,j] <- -s
-        g[j,i] <- s
-    }else {
+        g[j,i] <- s}
+    else {
         stop("i and j must be different")
     } 
     g
@@ -82,11 +82,11 @@ get_A_matrix <- function(X , U_list , V_list , k , K){
     X %*% Ul %*% V %*% Ur
 }  
 
-get_rotation_matrix <- function(x,c){
+get_rotation_matrix <- function(q,p){
     k <- 0
     ij_list = list()
-    for (i in 1:length(c)){
-        for ( j in 1:length(c)){
+    for (i in 1:length(p)){
+        for ( j in 1:length(p)){
             if (i<j){
                 k <- k+1
                 ij_list[[k]] <- c(i , j)
@@ -98,10 +98,10 @@ get_rotation_matrix <- function(x,c){
     K <- nrow(ij_list)
     
     cost_and_grad <- function(theta_list){
-        U_list <- generate_U_list(ij_list, theta_list, c)
-        V_list <- generate_V_list(ij_list, theta_list, c)
-        R <- Reduce( "%*%" ,U_list , diag(c) )
-        Z <- x %*% R
+        U_list <- generate_U_list(ij_list, theta_list, p)
+        V_list <- generate_V_list(ij_list, theta_list, p)
+        R <- Reduce( "%*%" ,U_list , diag(p) )
+        Z <- q %*% R
         # get the index of maximum element in each row
         mi <- apply( Z, 1, which.max)
         # i need the values of elements of maximum
@@ -120,9 +120,9 @@ get_rotation_matrix <- function(x,c){
 
         list(cost, grad)
     }
-    theta_list_init <- vector(mode = "numeric" , length = c*(c-1)/2)
+    theta_list_init <- vector(mode = "numeric" , length = p*(p-1)/2)
     opt <- optim(theta_list_init, cost_and_grad, method = "CG")
     
 
-    list (opt$value , Reduce("%*%",generate_U_list(ij_list, opt$par , c) , diag(c)))
+    list (opt$value , Reduce("%*%",generate_U_list(ij_list, opt$par , p) , diag(p)))
 }

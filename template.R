@@ -11,7 +11,7 @@ for (i in 1:5){
 }
 x <- do.call(cbind, x)
 x <- x+matrix(rnorm(100*20), ncol=20)*0.01
-distx <- as.matrix(dist(x))
+distx <- as.matrix(dist(t(x)))
 
 #affinity_matrix
 W <- compute_affinity_mat(distx)

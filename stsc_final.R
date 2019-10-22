@@ -2,7 +2,7 @@
 source("stsc_ulti.R")
 source("stsc.R")       
        
-self_tuning_spectral_clustering <- function(affinity, get_rotation_matrix, min_n_cluster=NULL, max_n_cluster=NULL){
+self_tuning_spectral_clustering <- function(W, min_n_cluster=NULL, max_n_cluster=NULL){
     eig_obj <- affinity_to_eigen2(W)
     # eigenvalues by default are sorted in decreasing order 
     values <- eig_obj$values
@@ -26,8 +26,8 @@ self_tuning_spectral_clustering <- function(affinity, get_rotation_matrix, min_n
     return(reformat_result(apply( Z, 1, which.max), dim(Z)[1]))
     }}
      
-self_tuning_spectral_clustering_np <- function(affinity, min_n_cluster=NULL, max_n_cluster=NULL){
-    self_tuning_spectral_clustering(affinity, get_rotation_matrix, min_n_cluster, max_n_cluster)
+self_tuning_spectral_clustering_np <- function(W, min_n_cluster=NULL, max_n_cluster=NULL){
+    self_tuning_spectral_clustering(W, min_n_cluster, max_n_cluster)
 }
         
         
