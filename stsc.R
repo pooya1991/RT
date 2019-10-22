@@ -8,24 +8,15 @@ calc_rotation <- function(i, j, theta, .dim) {
     m
 }
 
-Given_rotation_gradient <- function(i , j , theta , dimension){
-    g <- matrix(0 , dimension, dimension)
-    c <- cos(theta)
-    s <- sin(theta)
-    g[i,i] <- -s
-    g[j,j] <- -s
-    if(i >j){
-        g[i,j] <- c
-        g[j,i] <- -c
-    }else if (i<j){
-        g[i,j] <- -c
-        g[j,i] <- c
-    }else {
-        stop("i and j must be different")
-    } 
-    g
+calc_rotation_gradient <- function(i , j , theta , .dim) {
+    if (i == j) stop("i and j must be different", call = FALSE) 
+    m <- diag(0 , .dim)
+    m[i, i] <- -sin(theta)
+    m[j, j] <- -sin(theta)
+    m[max(i, j), min(i, j)] <- cos(theta)
+    m[min(i, j), max(i, j)] <- -cos(theta)
+    m
 }
-
 
 generate_U_list <- function(ij_list , theta_list , dimension){
     k <- 0
