@@ -1,23 +1,12 @@
-# stsc_np.py
-
-Given_rotation <- function( i, j , theta , dimension){
-    g <- diag(dimension)
-    c <- cos(theta)
-    s <- sin(theta)
-    g[i,i] <- c
-    g[j,j] <- c
-    if(i > j){
-        g[i,j] <- s
-        g[j,i] <- -s}
-    else if (i<j){
-        g[i,j] <- -s
-        g[j,i] <- s}
-    else {
-        stop("i and j must be different")
-    } 
-    g
+calc_rotation <- function(i, j, theta, .dim) {
+    if (i == j) stop("i and j must be different", call = FALSE) 
+    m <- diag(.dim)
+    m[i, i] <- cos(theta)
+    m[j, j] <- cos(theta)
+    m[max(i, j), min(i, j)] <- sin(theta)
+    m[min(i, j), max(i, j)] <- -sin(theta)
+    m
 }
-
 
 Given_rotation_gradient <- function(i , j , theta , dimension){
     g <- matrix(0 , dimension, dimension)
@@ -64,13 +53,13 @@ get_U_ab <- function(a,b,U_list , K){
     if(a==b){
         if(a < K & a!=0){
             U_list[a]
-           }else {
-                return(I)}}  
-     else if(a>b){
-           return(I)}
-     else {
-            Reduce("%*%" , U_list[a:b] , I)
-        }
+        }else {
+            return(I)}}  
+    else if(a>b){
+        return(I)}
+    else {
+        Reduce("%*%" , U_list[a:b] , I)
+    }
 }
 
 
@@ -117,12 +106,12 @@ get_rotation_matrix <- function(q,p){
             tmp <-  tmp - ((Z^2) / (M^3)) * MA
             tmp = 2 * sum(tmp)
             grad[k] = tmp}
-
+        
         list(cost, grad)
     }
     theta_list_init <- vector(mode = "numeric" , length = p*(p-1)/2)
     opt <- optim(theta_list_init, cost_and_grad, method = "CG")
     
-
+    
     list (opt$value , Reduce("%*%",generate_U_list(ij_list, opt$par , p) , diag(p)))
 }
