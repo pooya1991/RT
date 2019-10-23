@@ -3,14 +3,7 @@ source("stsc_ulti.R")
 source("stsc.R")
 source("stsc_final.R")
 
-
-base <- matrix(rnorm(100*4), ncol=4)
-x <- list()
-for (i in 1:5){
-    x[[i]] <-  base * rnorm(1)
-}
-x <- do.call(cbind, x)
-x <- x+matrix(rnorm(100*20), ncol=20)*0.01
+x <- scan("base.csv", sep = ",") %>% matrix(ncol = 20)
 distx <- as.matrix(dist(t(x)))
 
 #affinity_matrix

@@ -18,27 +18,6 @@ calc_rotation_gradient <- function(i , j , theta , .dim) {
     m
 }
 
-generate_U_list <- function(ij_list , theta_list , dimension){
-    k <- 0
-    g_u_list <- list()
-    for(i in 1:length(theta_list)){
-        k <- k+1
-        g_u_list[[k]]<- Given_rotation(ij_list[i,1], ij_list[i,2] , theta_list[i], dimension)
-    }
-    g_u_list
-}
-
-
-generate_V_list <- function(ij_list , theta_list , dimension){
-    k <- 0
-    g_v_list <- list()
-    for (i in 1:length(theta_list)){
-        k <- k+1
-        g_v_list[[k]] <- Given_rotation_gradient(ij_list[i,1], ij_list[i,2] , theta_list[i], dimension)
-    }
-    g_v_list
-}
-
 get_U_ab <- function(a,b,U_list , K){
     I <- diag(length(U_list[[1]][,1]))
     if(a==b){
@@ -53,7 +32,6 @@ get_U_ab <- function(a,b,U_list , K){
     }
 }
 
-
 get_A_matrix <- function(X , U_list , V_list , k , K){
     Ul <- get_U_ab(1, k, U_list, K)
     V  <- V_list[[k]]
@@ -62,26 +40,16 @@ get_A_matrix <- function(X , U_list , V_list , k , K){
     X %*% Ul %*% V %*% Ur
 }  
 
-get_rotation_matrix <- function(q,p){
-    k <- 0
-    ij_list = list()
-    for (i in 1:length(p)){
-        for ( j in 1:length(p)){
-            if (i<j){
-                k <- k+1
-                ij_list[[k]] <- c(i , j)
-            }
-        }
-    }
-    
-    ij_list <- do.call(rbind, ij_list)
-    K <- nrow(ij_list)
-    
-    cost_and_grad <- function(theta_list){
-        U_list <- generate_U_list(ij_list, theta_list, p)
-        V_list <- generate_V_list(ij_list, theta_list, p)
+get_rotation_matrix <- function(X, p){
+    ij_list <- purrr::cross2(1:p, 1:p, .filter = `>=`)
+    i <- purrr::map(ij_list, 1)
+    j <- purrr::map(ij_list, 2)
+    K <- length(ij_list)
+    cost_and_grad <- function(theta_list) {
+        U_list <- purrr::pmap(list(i = i, j = j, theta = theta_list), calc_rotation, .dim = p)
+        V_list <- purrr::pmap(list(i = i, j = j, theta = theta_list), calc_rotation_gradient, .dim = p)
         R <- Reduce( "%*%" ,U_list , diag(p) )
-        Z <- q %*% R
+        Z <- X %*% R
         # get the index of maximum element in each row
         mi <- apply( Z, 1, which.max)
         # i need the values of elements of maximum

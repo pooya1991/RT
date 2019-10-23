@@ -22,7 +22,7 @@ get_min_max <- function(values , min_n_cluster , max_n_cluster){
         min_n_cluster <- 2
     }
     if (is.null(args[['max_n_cluster']])) {
-        max_n_cluster <- sum(values[which(values >0)])
+        max_n_cluster <- sum(values > 0)
     }
     if (max_n_cluster < 2){
         max_n_cluster <- 2
