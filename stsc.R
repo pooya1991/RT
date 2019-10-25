@@ -21,7 +21,7 @@ calc_rotation_gradient <- function(i , j , theta , .dim) {
 get_U_ab <- function(a,b,U_list , K){
     I <- diag(length(U_list[[1]][,1]))
     if(a==b){
-        if(a < K & a!=0){
+        if(a < K & a!=1){
             U_list[a]
         }else {
             return(I)}}  
@@ -40,6 +40,7 @@ get_A_matrix <- function(X , U_list , V_list , k , K){
     X %*% Ul %*% V %*% Ur
 }  
 
+
 get_rotation_matrix <- function(X, p){
     ij_list <- purrr::cross2(1:p, 1:p, .filter = `>=`)
     i <- purrr::map(ij_list, 1)
@@ -48,29 +49,32 @@ get_rotation_matrix <- function(X, p){
     cost_and_grad <- function(theta_list) {
         U_list <- purrr::pmap(list(i = i, j = j, theta = theta_list), calc_rotation, .dim = p)
         V_list <- purrr::pmap(list(i = i, j = j, theta = theta_list), calc_rotation_gradient, .dim = p)
+
         R <- Reduce( "%*%" ,U_list , diag(p) )
         Z <- X %*% R
         # get the index of maximum element in each row
         mi <- apply( Z, 1, which.max)
         # i need the values of elements of maximum
+        M = c()
         for (i in 1:length(mi)){
             M[i] <- Z[i ,mi[i]]}
         cost <- sum((Z/M)^2)
         grad <- vector(mode='numeric' , length=K)
         for (k in 1:K){
-            A <- get_A_matrix(x, U_list, V_list, k, K)
-            for (i in length(mi)){
-                MA[i] <- A[i,mi[i]]}
+            A <- get_A_matrix(X, U_list, V_list, k, K)
+            MA = c()
+            for (i in 1:length(mi)){ MA[i] <- A[i,mi[i]]}
             tmp <-  (Z / (M^2)) * A
             tmp <-  tmp - ((Z^2) / (M^3)) * MA
             tmp = 2 * sum(tmp)
             grad[k] = tmp}
         
-        list(cost, grad)
+        cost
     }
     theta_list_init <- vector(mode = "numeric" , length = p*(p-1)/2)
     opt <- optim(theta_list_init, cost_and_grad, method = "CG")
     
     
-    list (opt$value , Reduce("%*%",generate_U_list(ij_list, opt$par , p) , diag(p)))
-}
+    list (opt$value , Reduce("%*%",purrr::pmap(list(i = i, j = j, theta = opt$par), calc_rotation, .dim = p) , diag(p)))}
+
+

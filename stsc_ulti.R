@@ -1,28 +1,12 @@
 #stsc_ulti.py
-
-compute_affinity_mat <- function(dist_mat, sigma = 1, local_scale = FALSE, k = 7) {
-    sigma_sqr <- sigma^2
-    
-    if (local_scale) {
-        kth_neighbor <- apply(dist_mat, 2, function(x) sort(x)[k])
-        sigma_sqr <- tcrossprod(kth_neighbor)
-    }
-    
-    # computing the weighted adjacency matrix
-    W <- -dist_mat^2 / sigma_sqr
-    W[is.nan(W)] <- 0
-    W <- exp(W)
-    diag(W) <- 0
-    W
-}
-
 get_min_max <- function(values , min_n_cluster , max_n_cluster){
     args <- list(min_n_cluster, max_n_cluster)
     if (is.null(args[['min_n_cluster']])) {
         min_n_cluster <- 2
     }
     if (is.null(args[['max_n_cluster']])) {
-        max_n_cluster <- sum(values > 0)
+        max_n_cluster <- sum(values >0 )
+      
     }
     if (max_n_cluster < 2){
         max_n_cluster <- 2
@@ -46,7 +30,7 @@ affinity_to_eigen2 <- function(W) {
 
 
 
-refomat_result <- function(cluster_label , n){
+reformat_result <- function(cluster_label , n){
     zip_data <- data.frame(cluster_label = cluster_label , number=1:n )
     zip_data[order(zip_data$cluster_label),]
     repeated <- as.numeric(names(table(cluster_label)[table(cluster_label) >= 1]))

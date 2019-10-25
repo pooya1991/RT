@@ -5,6 +5,7 @@
 # Session Data files
 .RData
 .DS_Store
+.RDataTmp
 
 # Example code in package build process
 *-Ex.R

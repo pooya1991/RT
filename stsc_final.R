@@ -8,8 +8,8 @@ self_tuning_spectral_clustering <- function(W, min_n_cluster=NULL, max_n_cluster
     values <- eig_obj$values
     # vectors are correspodence to eigenvalues
     vectors <- eig_obj$vectors
-    min_n_cluster <- get_min_max(values, min_n_cluster, max_n_cluster)[[1]]
-    max_n_cluster <- get_min_max(values, min_n_cluster, max_n_cluster)[[2]]
+    min_n_cluster <- get_min_max(values, min_n_cluster=NULL, max_n_cluster=NULL)[[1]]
+    max_n_cluster <- get_min_max(values, min_n_cluster=NULL, max_n_cluster=NULL)[[2]]
     re <- list()
     k <- 0
     for ( c in min_n_cluster:max_n_cluster){
@@ -19,10 +19,9 @@ self_tuning_spectral_clustering <- function(W, min_n_cluster=NULL, max_n_cluster
         r <-  get_rotation_matrix(x,c)[[2]]
         k <- k+1
         re[[k]] <- list(cost , x%*%r)
-        cat("number of cluster :", c , "\t", "cost :" , cost)
+        cat("number of cluster :", c , "\t", "cost :" , cost ,"\n")}
         
-        COST <- re[order(sapply(re,'[[',1))][[1]][[1]]
-        Z <- re[order(sapply(re,'[[',1))][[1]][[2]]
-        return(reformat_result(apply( Z, 1, which.max), dim(Z)[1]))
-    }
+    COST <- re[order(sapply(re,'[[',1))][[1]][[1]]
+    Z <- re[order(sapply(re,'[[',1))][[1]][[2]]
+    return(reformat_result(apply( Z, 1, which.max), dim(Z)[1]))
 }
